@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Firebase Auth Sample</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 flex justify-center items-center h-screen">
+    <div class="w-full max-w-md bg-white shadow-lg rounded-lg p-6">
+      <h1 class="text-2xl font-bold text-center text-gray-800">Firebase Authentication</h1>
+      
+      <div class="mt-6">
+        <h2 class="text-lg font-semibold text-gray-700">Email/Password Login</h2>
+        <input type="email" id="email" placeholder="Email" class="w-full p-2 mt-2 border rounded-md" />
+        <input type="password" id="password" placeholder="Password" class="w-full p-2 mt-2 border rounded-md" />
+        <div class="flex justify-between mt-4">
+          <button id="email-login" class="w-1/2 bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600">Login</button>
+          <button id="email-signup" class="w-1/2 bg-green-500 text-white p-2 rounded-md hover:bg-green-600 ml-2">Sign Up</button>
+        </div>
+      </div>
+      
+      <div class="mt-6">
+        <h2 class="text-lg font-semibold text-gray-700">Google Login</h2>
+        <button id="google-login" class="w-full bg-red-500 text-white p-2 rounded-md hover:bg-red-600 mt-2">Login with Google</button>
+      </div>
+      
+      <button id="logout" class="w-full bg-gray-600 text-white p-2 rounded-md hover:bg-gray-700 mt-6">Logout</button>
+      
+      <div class="mt-6">
+        <h2 class="text-lg font-semibold text-gray-700">User Information</h2>
+        <pre id="user-info" class="bg-gray-200 p-2 rounded-md h-32 overflow-auto text-sm">Not logged in</pre>
+      </div>
+    </div>
+
+    <!-- Update script path -->
+    <script type="module" src="/src/app.js"></script>
+  </body>
+</html>
