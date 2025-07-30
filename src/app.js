@@ -1,14 +1,14 @@
 /**
- * Firebase Todo Application
+ * Firebase AIoT Device Management Application
  * 
- * Firebase 인증과 Firestore를 활용한 실시간 Todo 애플리케이션입니다.
+ * Firebase 인증과 Firestore를 활용한 실시간 AIoT 디바이스 관리 애플리케이션입니다.
  * 
  * Features:
  * - Email/Password Authentication
  * - Google OAuth Authentication
- * - Real-time Todo CRUD operations
- * - User-specific Todo management
- * - Todo filtering and completion tracking
+ * - Real-time Device CRUD operations
+ * - User-specific Device management
+ * - Device status monitoring and filtering
  */
 
 // Firebase SDK imports for authentication and Firestore
@@ -46,11 +46,11 @@ try {
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // Global variables for todo management
+  // Global variables for device management
   let currentUser = null;
-  let todos = [];
+  let devices = [];
   let currentFilter = 'all';
-  let unsubscribeTodos = null;
+  let unsubscribeDevices = null;
 
   /**
    * Display user information and toggle UI sections
@@ -61,189 +61,222 @@ try {
   function displayUserInfo(user) {
     console.log('User state changed:', user);
     const authSection = document.getElementById("auth-section");
-    const todoSection = document.getElementById("todo-section");
+    const deviceSection = document.getElementById("device-section");
     const userInfoElement = document.getElementById("user-info");
     const userEmailElement = document.getElementById("user-email");
     
     if (user) {
       currentUser = user;
       authSection.classList.add('hidden');
-      todoSection.classList.remove('hidden');
+      deviceSection.classList.remove('hidden');
       userInfoElement.textContent = `로그인됨: ${user.email}`;
       if (userEmailElement) {
         userEmailElement.textContent = user.email;
       }
-      setupTodoListeners();
+      setupDeviceListeners();
     } else {
       currentUser = null;
       authSection.classList.remove('hidden');
-      todoSection.classList.add('hidden');
+      deviceSection.classList.add('hidden');
       userInfoElement.textContent = "Not logged in";
-      if (unsubscribeTodos) {
-        unsubscribeTodos();
-        unsubscribeTodos = null;
+      if (unsubscribeDevices) {
+        unsubscribeDevices();
+        unsubscribeDevices = null;
       }
     }
   }
 
   /**
-   * Set up real-time todo listeners
-   * 실시간 todo 리스너 설정
+   * Set up real-time device listeners
+   * 실시간 디바이스 리스너 설정
    */
-  function setupTodoListeners() {
-    if (!currentUser || unsubscribeTodos) return;
+  function setupDeviceListeners() {
+    if (!currentUser || unsubscribeDevices) return;
     
-    console.log('Setting up todo listeners for user:', currentUser.uid);
-    const todosQuery = query(
-      collection(db, 'todos'),
+    console.log('Setting up device listeners for user:', currentUser.uid);
+    const devicesQuery = query(
+      collection(db, 'devices'),
       where('userId', '==', currentUser.uid)
     );
     
-    unsubscribeTodos = onSnapshot(todosQuery, (snapshot) => {
+    unsubscribeDevices = onSnapshot(devicesQuery, (snapshot) => {
       console.log('Firestore snapshot received, docs count:', snapshot.size);
-      todos = [];
+      devices = [];
       snapshot.forEach((doc) => {
-        const todoData = { id: doc.id, ...doc.data() };
-        console.log('Todo data:', todoData);
-        todos.push(todoData);
+        const deviceData = { id: doc.id, ...doc.data() };
+        console.log('Device data:', deviceData);
+        devices.push(deviceData);
       });
       // Sort by createdAt in JavaScript since we removed orderBy from query
-      todos.sort((a, b) => {
+      devices.sort((a, b) => {
         if (!a.createdAt || !b.createdAt) return 0;
         return b.createdAt.toMillis() - a.createdAt.toMillis();
       });
-      console.log('All todos loaded and sorted:', todos);
-      renderTodos();
-      updateTodoCount();
+      console.log('All devices loaded and sorted:', devices);
+      renderDevices();
+      updateDeviceCount();
     });
   }
 
   /**
-   * Add a new todo
-   * 새 할 일 추가
+   * Add a new device
+   * 새 디바이스 추가
    * 
-   * @param {string} text - Todo text
+   * @param {Object} deviceData - Device information
    */
-  async function addTodo(text) {
-    if (!currentUser || !text.trim()) return;
+  async function addDevice(deviceData) {
+    if (!currentUser || !deviceData.name?.trim()) return;
     
     try {
-      await addDoc(collection(db, 'todos'), {
-        text: text.trim(),
-        completed: false,
+      await addDoc(collection(db, 'devices'), {
+        name: deviceData.name.trim(),
+        type: deviceData.type || 'sensor',
+        status: 'offline',
+        location: deviceData.location || '미지정',
+        batteryLevel: deviceData.batteryLevel || 100,
+        lastSeen: serverTimestamp(),
         userId: currentUser.uid,
         createdAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error adding todo:', error);
-      alert('할 일 추가 중 오류가 발생했습니다.');
+      console.error('Error adding device:', error);
+      alert('디바이스 추가 중 오류가 발생했습니다.');
     }
   }
 
   /**
-   * Toggle todo completion status
-   * 할 일 완료 상태 토글
+   * Toggle device status
+   * 디바이스 상태 토글
    * 
-   * @param {string} todoId - Todo document ID
-   * @param {boolean} completed - New completion status
+   * @param {string} deviceId - Device document ID
+   * @param {string} newStatus - New device status
    */
-  async function toggleTodo(todoId, completed) {
+  async function toggleDeviceStatus(deviceId, newStatus) {
     try {
-      await updateDoc(doc(db, 'todos', todoId), {
-        completed: completed
+      await updateDoc(doc(db, 'devices', deviceId), {
+        status: newStatus,
+        lastSeen: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating todo:', error);
-      alert('할 일 수정 중 오류가 발생했습니다.');
+      console.error('Error updating device:', error);
+      alert('디바이스 상태 수정 중 오류가 발생했습니다.');
     }
   }
 
   /**
-   * Delete a todo
-   * 할 일 삭제
+   * Delete a device
+   * 디바이스 삭제
    * 
-   * @param {string} todoId - Todo document ID
+   * @param {string} deviceId - Device document ID
    */
-  async function deleteTodo(todoId) {
+  async function deleteDevice(deviceId) {
+    if (!confirm('디바이스를 삭제하시겠습니까?')) return;
+    
     try {
-      await deleteDoc(doc(db, 'todos', todoId));
+      await deleteDoc(doc(db, 'devices', deviceId));
     } catch (error) {
-      console.error('Error deleting todo:', error);
-      alert('할 일 삭제 중 오류가 발생했습니다.');
+      console.error('Error deleting device:', error);
+      alert('디바이스 삭제 중 오류가 발생했습니다.');
     }
   }
 
   /**
-   * Clear all completed todos
-   * 완료된 모든 할 일 삭제
+   * Clear all offline devices
+   * 오프라인 디바이스 모두 삭제
    */
-  async function clearCompleted() {
-    const completedTodos = todos.filter(todo => todo.completed);
+  async function clearOfflineDevices() {
+    const offlineDevices = devices.filter(device => device.status === 'offline');
+    
+    if (offlineDevices.length === 0) {
+      alert('오프라인 디바이스가 없습니다.');
+      return;
+    }
+    
+    if (!confirm(`${offlineDevices.length}개의 오프라인 디바이스를 삭제하시겠습니까?`)) return;
     
     try {
       await Promise.all(
-        completedTodos.map(todo => deleteDoc(doc(db, 'todos', todo.id)))
+        offlineDevices.map(device => deleteDoc(doc(db, 'devices', device.id)))
       );
     } catch (error) {
-      console.error('Error clearing completed todos:', error);
-      alert('완료된 할 일 삭제 중 오류가 발생했습니다.');
+      console.error('Error clearing offline devices:', error);
+      alert('오프라인 디바이스 삭제 중 오류가 발생했습니다.');
     }
   }
 
   /**
-   * Render todos based on current filter
-   * 현재 필터에 따라 할 일 렌더링
+   * Render devices based on current filter
+   * 현재 필터에 따라 디바이스 렌더링
    */
-  function renderTodos() {
-    const todoList = document.getElementById('todo-list');
+  function renderDevices() {
+    const deviceList = document.getElementById('device-list');
     const emptyState = document.getElementById('empty-state');
-    if (!todoList) return;
+    if (!deviceList) return;
     
-    let filteredTodos = todos;
-    if (currentFilter === 'active') {
-      filteredTodos = todos.filter(todo => !todo.completed);
-    } else if (currentFilter === 'completed') {
-      filteredTodos = todos.filter(todo => todo.completed);
+    let filteredDevices = devices;
+    if (currentFilter === 'online') {
+      filteredDevices = devices.filter(device => device.status === 'online');
+    } else if (currentFilter === 'offline') {
+      filteredDevices = devices.filter(device => device.status === 'offline');
     }
     
     // Show/hide empty state
-    if (filteredTodos.length === 0) {
+    if (filteredDevices.length === 0) {
       if (emptyState) {
         emptyState.style.display = 'block';
       }
-      todoList.innerHTML = `
+      deviceList.innerHTML = `
         <div id="empty-state" class="text-center py-12 text-gray-500">
           <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
           </svg>
-          <p>${currentFilter === 'active' ? '진행중인 할 일이 없습니다.' : 
-               currentFilter === 'completed' ? '완료된 할 일이 없습니다.' : 
-               '아직 할 일이 없습니다.'}</p>
-          <p class="text-sm mt-1">${currentFilter === 'all' ? '위에서 새로운 할 일을 추가해보세요!' : ''}</p>
+          <p>${currentFilter === 'online' ? '온라인 디바이스가 없습니다.' : 
+               currentFilter === 'offline' ? '오프라인 디바이스가 없습니다.' : 
+               '아직 디바이스가 없습니다.'}</p>
+          <p class="text-sm mt-1">${currentFilter === 'all' ? '위에서 새로운 디바이스를 추가해보세요!' : ''}</p>
         </div>
       `;
     } else {
       if (emptyState) {
         emptyState.style.display = 'none';
       }
-      todoList.innerHTML = filteredTodos.map((todo, index) => `
-        <div class="todo-item ${todo.completed ? 'completed' : ''} fade-in" data-id="${todo.id}" style="animation-delay: ${index * 0.05}s">
-          <input 
-            type="checkbox" 
-            class="todo-checkbox" 
-            ${todo.completed ? 'checked' : ''} 
-            onchange="toggleTodo('${todo.id}', this.checked)"
-          />
-          <span class="todo-text">${escapeHtml(todo.text)}</span>
-          <div class="todo-actions">
-            <button class="todo-delete" onclick="deleteTodo('${todo.id}')" title="할 일 삭제">
+      deviceList.innerHTML = filteredDevices.map((device, index) => {
+        const statusColor = device.status === 'online' ? 'bg-green-100 border-green-300' : 
+                           device.status === 'error' ? 'bg-red-100 border-red-300' : 'bg-gray-100 border-gray-300';
+        const statusIcon = device.status === 'online' ? '🟢' : device.status === 'error' ? '🔴' : '⚪';
+        const batteryIcon = device.batteryLevel > 50 ? '🔋' : device.batteryLevel > 20 ? '🪫' : '🪪';
+        
+        return `
+        <div class="device-item ${statusColor} fade-in" data-id="${device.id}" style="animation-delay: ${index * 0.05}s">
+          <div class="device-info">
+            <div class="device-header">
+              <span class="device-name">${escapeHtml(device.name)}</span>
+              <div class="device-status">
+                <span class="status-indicator">${statusIcon} ${device.status.toUpperCase()}</span>
+              </div>
+            </div>
+            <div class="device-details">
+              <span class="device-type">📱 ${device.type}</span>
+              <span class="device-location">📍 ${device.location}</span>
+              <span class="device-battery">${batteryIcon} ${device.batteryLevel}%</span>
+              <span class="device-last-seen">🕰️ ${formatLastSeen(device.lastSeen)}</span>
+            </div>
+          </div>
+          <div class="device-actions">
+            <select onchange="toggleDeviceStatus('${device.id}', this.value)" class="status-select">
+              <option value="online" ${device.status === 'online' ? 'selected' : ''}>온라인</option>
+              <option value="offline" ${device.status === 'offline' ? 'selected' : ''}>오프라인</option>
+              <option value="error" ${device.status === 'error' ? 'selected' : ''}>오류</option>
+            </select>
+            <button class="device-delete" onclick="deleteDevice('${device.id}')" title="디바이스 삭제">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
             </button>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
   }
 
@@ -261,30 +294,49 @@ try {
     };
     return text.replace(/[&<>"']/g, function(m) { return map[m]; });
   }
+  
+  /**
+   * Format last seen timestamp
+   * 마지막 접속 시간 포맧팅
+   */
+  function formatLastSeen(timestamp) {
+    if (!timestamp) return '알 수 없음';
+    const now = new Date();
+    const lastSeen = timestamp.toDate();
+    const diffMs = now - lastSeen;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return '방금 전';
+    if (diffMins < 60) return `${diffMins}분 전`;
+    if (diffHours < 24) return `${diffHours}시간 전`;
+    return `${diffDays}일 전`;
+  }
 
   /**
-   * Update todo count display
-   * 할 일 개수 표시 업데이트
+   * Update device count display
+   * 디바이스 개수 표시 업데이트
    */
-  function updateTodoCount() {
-    const todoCount = document.getElementById('todo-count');
-    const activeCount = document.getElementById('active-count');
-    const completedCount = document.getElementById('completed-count');
+  function updateDeviceCount() {
+    const deviceCount = document.getElementById('device-count');
+    const onlineCount = document.getElementById('online-count');
+    const offlineCount = document.getElementById('offline-count');
     
-    const activeTodos = todos.filter(todo => !todo.completed).length;
-    const completedTodos = todos.filter(todo => todo.completed).length;
-    const totalTodos = todos.length;
+    const onlineDevices = devices.filter(device => device.status === 'online').length;
+    const offlineDevices = devices.filter(device => device.status === 'offline').length;
+    const totalDevices = devices.length;
     
-    if (todoCount) {
-      todoCount.textContent = `총 ${totalTodos}개의 할 일`;
+    if (deviceCount) {
+      deviceCount.textContent = `총 ${totalDevices}개의 디바이스`;
     }
     
-    if (activeCount) {
-      activeCount.textContent = `${activeTodos}개 진행중`;
+    if (onlineCount) {
+      onlineCount.textContent = `${onlineDevices}개 온라인`;
     }
     
-    if (completedCount) {
-      completedCount.textContent = `${completedTodos}개 완료`;
+    if (offlineCount) {
+      offlineCount.textContent = `${offlineDevices}개 오프라인`;
     }
   }
 
@@ -303,12 +355,12 @@ try {
     });
     document.getElementById(`filter-${filter}`).classList.add('active');
     
-    renderTodos();
+    renderDevices();
   }
 
   // Make functions globally available
-  window.toggleTodo = toggleTodo;
-  window.deleteTodo = deleteTodo;
+  window.toggleDeviceStatus = toggleDeviceStatus;
+  window.deleteDevice = deleteDevice;
   window.setFilter = setFilter;
 
   // Set up real-time auth state observer
@@ -320,37 +372,47 @@ try {
 
   // DOM Content Loaded Event Handler
   document.addEventListener('DOMContentLoaded', () => {
-    // Todo app event listeners
-    const todoInput = document.getElementById('todo-input');
-    const addTodoBtn = document.getElementById('add-todo');
-    const clearCompletedBtn = document.getElementById('clear-completed');
+    // Device app event listeners
+    const deviceNameInput = document.getElementById('device-name');
+    const deviceTypeSelect = document.getElementById('device-type');
+    const deviceLocationInput = document.getElementById('device-location');
+    const addDeviceBtn = document.getElementById('add-device');
+    const clearOfflineBtn = document.getElementById('clear-offline');
     
-    // Add todo on button click or Enter key
-    addTodoBtn?.addEventListener('click', () => {
-      const text = todoInput.value.trim();
-      if (text) {
-        addTodo(text);
-        todoInput.value = '';
+    // Add device on button click or Enter key
+    addDeviceBtn?.addEventListener('click', () => {
+      const name = deviceNameInput.value.trim();
+      const type = deviceTypeSelect.value;
+      const location = deviceLocationInput.value.trim();
+      
+      if (name) {
+        addDevice({ name, type, location });
+        deviceNameInput.value = '';
+        deviceLocationInput.value = '';
       }
     });
     
-    todoInput?.addEventListener('keypress', (e) => {
+    deviceNameInput?.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
-        const text = todoInput.value.trim();
-        if (text) {
-          addTodo(text);
-          todoInput.value = '';
+        const name = deviceNameInput.value.trim();
+        const type = deviceTypeSelect.value;
+        const location = deviceLocationInput.value.trim();
+        
+        if (name) {
+          addDevice({ name, type, location });
+          deviceNameInput.value = '';
+          deviceLocationInput.value = '';
         }
       }
     });
     
-    // Clear completed todos
-    clearCompletedBtn?.addEventListener('click', clearCompleted);
+    // Clear offline devices
+    clearOfflineBtn?.addEventListener('click', clearOfflineDevices);
     
     // Filter button event listeners
     document.getElementById('filter-all')?.addEventListener('click', () => setFilter('all'));
-    document.getElementById('filter-active')?.addEventListener('click', () => setFilter('active'));
-    document.getElementById('filter-completed')?.addEventListener('click', () => setFilter('completed'));
+    document.getElementById('filter-online')?.addEventListener('click', () => setFilter('online'));
+    document.getElementById('filter-offline')?.addEventListener('click', () => setFilter('offline'));
     
     // Header logout button
     document.getElementById('header-logout')?.addEventListener('click', async () => {

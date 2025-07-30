@@ -3,37 +3,40 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Firebase Todo App</title>
+    <title>Firebase AIoT Device Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       .filter-button.active {
         @apply bg-blue-500 text-white;
       }
-      .todo-item {
-        @apply flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm;
+      .device-item {
+        @apply flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-all duration-200 shadow-sm;
       }
-      .todo-item:hover {
-        @apply shadow-md border-gray-300;
+      .device-info {
+        @apply flex-1;
       }
-      .todo-item.completed {
-        @apply bg-green-50 border-green-200;
+      .device-header {
+        @apply flex items-center justify-between mb-2;
       }
-      .todo-item.completed .todo-text {
-        @apply line-through text-gray-500;
+      .device-name {
+        @apply text-lg font-semibold text-gray-800;
       }
-      .todo-checkbox {
-        @apply w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer;
+      .device-status {
+        @apply text-sm font-medium;
       }
-      .todo-text {
-        @apply flex-1 text-gray-800 text-sm font-medium;
+      .status-indicator {
+        @apply px-2 py-1 rounded-full text-xs;
       }
-      .todo-actions {
-        @apply flex gap-2 opacity-0 transition-opacity duration-200;
+      .device-details {
+        @apply flex flex-wrap gap-4 text-sm text-gray-600;
       }
-      .todo-item:hover .todo-actions {
-        @apply opacity-100;
+      .device-actions {
+        @apply flex gap-2 items-center;
       }
-      .todo-delete {
+      .status-select {
+        @apply text-sm border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500;
+      }
+      .device-delete {
         @apply text-red-500 hover:text-red-700 text-sm px-2 py-1 hover:bg-red-50 rounded transition-colors;
       }
       
@@ -56,7 +59,7 @@
   <body class="bg-gray-100 min-h-screen py-8">
     <!-- Authentication Section -->
     <div id="auth-section" class="w-full max-w-md mx-auto bg-white shadow-lg rounded-lg p-6 mb-8">
-      <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Firebase Todo App</h1>
+      <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">AIoT Device Manager</h1>
       
       <div class="mt-6">
         <h2 class="text-lg font-semibold text-gray-700">Email/Password Login</h2>
@@ -81,12 +84,12 @@
       </div>
     </div>
 
-    <!-- Todo App Section -->
-    <div id="todo-section" class="w-full max-w-4xl mx-auto hidden">
+    <!-- Device Management Section -->
+    <div id="device-section" class="w-full max-w-4xl mx-auto hidden">
       <!-- Header with user info and logout -->
       <div class="bg-white shadow-lg rounded-lg p-4 mb-6">
         <div class="flex justify-between items-center">
-          <h1 class="text-2xl font-bold text-gray-800">Firebase Todo App</h1>
+          <h1 class="text-2xl font-bold text-gray-800">AIoT Device Manager</h1>
           <div class="flex items-center gap-4">
             <div class="text-right">
               <div class="text-sm text-gray-500">로그인됨</div>
@@ -99,27 +102,42 @@
         </div>
       </div>
 
-      <!-- Main Todo Section -->
+      <!-- Main Device Section -->
       <div class="bg-white shadow-lg rounded-lg p-6">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-bold text-gray-800">할 일 관리</h2>
-          <span id="todo-count" class="text-sm text-gray-600">0개의 할 일</span>
+          <h2 class="text-xl font-bold text-gray-800">디바이스 관리</h2>
+          <span id="device-count" class="text-sm text-gray-600">0개의 디바이스</span>
         </div>
       
-      <!-- Add Todo Form -->
+      <!-- Add Device Form -->
       <div class="mb-6">
-        <div class="flex gap-2">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
           <input 
             type="text" 
-            id="todo-input" 
-            placeholder="할 일을 입력하세요..." 
-            class="flex-1 p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            id="device-name" 
+            placeholder="디바이스 이름..." 
+            class="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <select 
+            id="device-type" 
+            class="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="sensor">센서</option>
+            <option value="actuator">액추에이터</option>
+            <option value="gateway">게이트웨이</option>
+            <option value="camera">카메라</option>
+          </select>
+          <input 
+            type="text" 
+            id="device-location" 
+            placeholder="위치 (예: 거실)..." 
+            class="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button 
-            id="add-todo" 
+            id="add-device" 
             class="bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition-colors"
           >
-            추가
+            디바이스 추가
           </button>
         </div>
       </div>
@@ -127,30 +145,30 @@
       <!-- Filter Buttons -->
       <div class="flex gap-2 mb-6">
         <button id="filter-all" class="filter-button px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors active">전체</button>
-        <button id="filter-active" class="filter-button px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">진행중</button>
-        <button id="filter-completed" class="filter-button px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">완료</button>
+        <button id="filter-online" class="filter-button px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">온라인</button>
+        <button id="filter-offline" class="filter-button px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">오프라인</button>
       </div>
       
-        <!-- Todo List -->
-        <div id="todo-list" class="space-y-3 min-h-[200px]">
+        <!-- Device List -->
+        <div id="device-list" class="space-y-3 min-h-[200px]">
           <!-- Empty state -->
           <div id="empty-state" class="text-center py-12 text-gray-500">
             <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
             </svg>
-            <p>아직 할 일이 없습니다.</p>
-            <p class="text-sm mt-1">위에서 새로운 할 일을 추가해보세요!</p>
+            <p>아직 디바이스가 없습니다.</p>
+            <p class="text-sm mt-1">위에서 새로운 디바이스를 추가해보세요!</p>
           </div>
         </div>
         
-        <!-- Todo Stats -->
+        <!-- Device Stats -->
         <div class="mt-6 flex justify-between items-center text-sm text-gray-600 border-t pt-4">
           <div class="flex items-center gap-4">
-            <span id="active-count">0개 진행중</span>
-            <span id="completed-count">0개 완료</span>
+            <span id="online-count">0개 온라인</span>
+            <span id="offline-count">0개 오프라인</span>
           </div>
-          <button id="clear-completed" class="text-red-500 hover:text-red-700 px-3 py-1 rounded hover:bg-red-50 transition-colors">
-            완료된 할 일 삭제
+          <button id="clear-offline" class="text-red-500 hover:text-red-700 px-3 py-1 rounded hover:bg-red-50 transition-colors">
+            오프라인 디바이스 삭제
           </button>
         </div>
       </div>
