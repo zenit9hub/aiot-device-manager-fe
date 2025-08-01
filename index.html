@@ -54,6 +54,32 @@
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
       }
+      
+      /* Screen Navigation Styles */
+      .screen {
+        @apply hidden;
+      }
+      .screen.active {
+        @apply block;
+      }
+      .device-detail {
+        @apply text-blue-500 hover:text-blue-700 text-sm px-2 py-1 hover:bg-blue-50 rounded transition-colors flex items-center gap-1;
+      }
+      .chart-container {
+        @apply relative h-64 w-full;
+      }
+      .connection-status {
+        @apply px-2 py-1 rounded-full text-xs font-medium;
+      }
+      .connection-status.connected {
+        @apply bg-green-100 text-green-800;
+      }
+      .connection-status.disconnected {
+        @apply bg-red-100 text-red-800;
+      }
+      .connection-status.connecting {
+        @apply bg-yellow-100 text-yellow-800;
+      }
     </style>
   </head>
   <body class="bg-gray-100 min-h-screen py-8">
@@ -84,8 +110,11 @@
       </div>
     </div>
 
+    <!-- Main Container -->
+    <div id="main-container" class="w-full max-w-4xl mx-auto hidden">
+    
     <!-- Device Management Section -->
-    <div id="device-section" class="w-full max-w-4xl mx-auto hidden">
+    <div id="device-list-screen" class="screen active">
       <!-- Header with user info and logout -->
       <div class="bg-white shadow-lg rounded-lg p-4 mb-6">
         <div class="flex justify-between items-center">
@@ -174,6 +203,93 @@
       </div>
     </div>
 
+    <!-- Device Detail Screen -->
+    <div id="device-detail-screen" class="screen">
+      <!-- Header with back button -->
+      <div class="bg-white shadow-lg rounded-lg p-4 mb-6">
+        <div class="flex items-center gap-4">
+          <button id="back-to-list" class="text-blue-500 hover:text-blue-700 flex items-center gap-2 px-3 py-2 rounded-md hover:bg-blue-50 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            목록으로 돌아가기
+          </button>
+          <h1 id="detail-device-name" class="text-2xl font-bold text-gray-800">디바이스 상세정보</h1>
+        </div>
+      </div>
+
+      <!-- Device Detail Content -->
+      <div class="bg-white shadow-lg rounded-lg p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <!-- Basic Information -->
+          <div class="space-y-6">
+            <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">기본 정보</h3>
+            <div class="bg-gray-50 p-6 rounded-lg space-y-4">
+              <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                <span class="text-gray-600 font-medium">디바이스 이름:</span>
+                <span id="detail-device-info-name" class="font-semibold text-gray-800"></span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                <span class="text-gray-600 font-medium">타입:</span>
+                <span id="detail-device-info-type" class="font-semibold text-gray-800"></span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                <span class="text-gray-600 font-medium">상태:</span>
+                <span id="detail-device-info-status" class="font-semibold text-gray-800"></span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                <span class="text-gray-600 font-medium">위치:</span>
+                <span id="detail-device-info-location" class="font-semibold text-gray-800"></span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                <span class="text-gray-600 font-medium">배터리:</span>
+                <span id="detail-device-info-battery" class="font-semibold text-gray-800"></span>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <span class="text-gray-600 font-medium">마지막 접속:</span>
+                <span id="detail-device-info-lastseen" class="font-semibold text-gray-800"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- MQTT Connection Status -->
+          <div class="space-y-6">
+            <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">MQTT 연결 상태</h3>
+            <div class="bg-gray-50 p-6 rounded-lg space-y-4">
+              <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                <span class="text-gray-600 font-medium">연결 상태:</span>
+                <span id="detail-mqtt-connection-status" class="connection-status disconnected">연결 끊김</span>
+              </div>
+              <div class="py-2 border-b border-gray-200">
+                <span class="text-gray-600 font-medium block mb-2">MQTT 토픽:</span>
+                <span id="detail-mqtt-topic" class="font-mono text-sm bg-white px-3 py-2 rounded border block break-all"></span>
+              </div>
+              <div class="py-2">
+                <span class="text-gray-600 font-medium block mb-2">마지막 메시지:</span>
+                <span id="detail-mqtt-last-message" class="text-sm bg-white px-3 py-2 rounded border block"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time Temperature Chart -->
+        <div class="space-y-6">
+          <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">실시간 온도 데이터</h3>
+          <div class="bg-gray-50 p-6 rounded-lg">
+            <div class="chart-container h-80">
+              <canvas id="detail-temperature-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </div> <!-- End of main-container -->
+
+    <!-- Load external libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    
     <!-- Update script path -->
     <script type="module" src="/src/app.js"></script>
   </body>
