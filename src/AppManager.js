@@ -30,7 +30,7 @@ export class AppManager {
       this.deviceListView = new DeviceListView(this.db, this.auth);
       this.deviceDetailView = new DeviceDetailView();
 
-      // 뷰 등록
+      // 뷰 등록 (이 시점에서 ViewManager가 각 뷰에 설정됨)
       this.viewManager.registerView('auth', this.authView);
       this.viewManager.registerView('deviceList', this.deviceListView);
       this.viewManager.registerView('deviceDetail', this.deviceDetailView);
@@ -39,12 +39,16 @@ export class AppManager {
       window.deviceListView = this.deviceListView;
       window.deviceDetailView = this.deviceDetailView;
 
+      // AuthView 초기화 (이벤트 리스너 설정)
+      await this.authView.initialize();
+
       // 현재 사용자 상태 확인하여 적절한 초기 뷰 설정
       await this.determineInitialView();
 
       console.log('AppManager initialized successfully');
     } catch (error) {
       console.error('AppManager initialization error:', error);
+      throw error;
     }
   }
 

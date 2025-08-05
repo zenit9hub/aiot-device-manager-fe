@@ -47,6 +47,10 @@ try {
       
       // Create and initialize app manager
       appManager = new AppManager(firebaseServices);
+      
+      // Export app manager for debugging immediately after creation
+      window.appManager = appManager;
+      
       await appManager.initialize();
       
       console.log('Application initialized successfully');
@@ -66,8 +70,6 @@ try {
     }
   });
 
-  // Export app manager for debugging
-  window.appManager = appManager;
 
 } catch (error) {
   console.error('Firebase initialization error:', error);

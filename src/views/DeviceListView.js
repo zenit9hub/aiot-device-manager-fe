@@ -271,8 +271,10 @@ export class DeviceListView extends BaseView {
    */
   openDeviceDetail(deviceId) {
     const device = this.devices.find(d => d.id === deviceId);
-    if (device) {
+    if (device && this.viewManager) {
       this.navigateTo('deviceDetail', { device });
+    } else if (!this.viewManager) {
+      console.error('ViewManager not available for navigation');
     }
   }
 
