@@ -31,14 +31,17 @@ develop.d1a2b3c4d5e6f.amplifyapp.com
 Amplify Console > App settings > Environment variables에 다음 변수들을 설정:
 
 ```
-VITE_FIREBASE_API_KEY=AIzaSyD8-o1oC3wVlDnjECUy1pZ_ip-YyclJBaY
-VITE_FIREBASE_AUTH_DOMAIN=fir-auth-kiot.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=fir-auth-kiot
-VITE_FIREBASE_STORAGE_BUCKET=fir-auth-kiot.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=835568542787
-VITE_FIREBASE_APP_ID=1:835568542787:web:c474be3c2b4fd9d38ee0f6
-VITE_FIREBASE_MEASUREMENT_ID=G-2T94S53GC6
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_firebase_app_id
+VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 ```
+
+**📋 값 확인 방법:**
+Firebase Console > Project Settings > General > Your apps에서 Firebase SDK snippet의 Config 객체에서 각 값을 확인할 수 있습니다.
 
 ### 3. Firebase 보안 및 도메인 설정
 
@@ -76,5 +79,13 @@ CORS 설정과는 다른 Firebase만의 보안 메커니즘입니다.
 
 ---
 
-**마지막 업데이트:** $(date)
+**마지막 업데이트:** 2025-08-15
 **Firebase SDK 버전:** v10.8.0
+
+## ⚠️ 보안 주의사항
+
+- **환경 변수**: 실제 Firebase 설정 값들을 문서에 하드코딩하지 마세요
+- **Private Repository**: Firebase 설정이 포함된 경우 반드시 private repository 사용
+- **gitignore**: `.env` 파일이 `.gitignore`에 포함되어 있는지 확인
+- **Access Control**: Firebase Security Rules로 데이터 접근 제어 설정
+- **Domain Restriction**: Authorized Domains로 허용된 도메인만 접근 가능하도록 설정
