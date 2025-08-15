@@ -79,3 +79,23 @@ Firebase config requires both Authentication and Firestore:
 - XSS protection with HTML escaping for user input
 - Responsive design for mobile and desktop usage
 - AWS Amplify deployment configuration included (`amplify.yml`)
+
+## Future Architecture Plans
+
+This frontend-focused project serves as Phase 1 of a larger AIoT system. Future development will include:
+
+### Phase 2: Backend Integration
+- **NestJS Backend**: Enterprise-grade API server with Firebase Auth integration
+- **PostgreSQL (RDS)**: User profile and sensitive data storage
+- **Hybrid Data Architecture**: 
+  - Firestore: Real-time device status, MQTT data, notifications
+  - RDS: User profiles, device metadata, usage analytics, audit logs
+- **Firebase Token Validation**: Backend API authentication using Firebase Admin SDK
+
+### Phase 3: Advanced Features (Optional)
+- **AWS Lambda Functions**: Serverless microservices for specialized tasks
+- **Data Analytics**: Usage patterns and device performance insights  
+- **Multi-tenant Support**: Organization and role-based access control
+- **Integration APIs**: Third-party IoT platform connections
+
+**Related Repository**: `aiot-device-manager-be` (Backend API)
