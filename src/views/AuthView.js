@@ -200,18 +200,29 @@ export class AuthView extends BaseView {
       }
       
       const provider = new GoogleAuthProvider();
-      // 빠른 팝업 응답을 위한 설정
+      
+      // Google OAuth 설정 강화
       provider.setCustomParameters({
-        prompt: 'select_account'
+        prompt: 'select_account',
+        include_granted_scopes: 'true',
+        access_type: 'online'
       });
       
+      // OAuth scopes 추가 (필요시)
+      provider.addScope('profile');
+      provider.addScope('email');
+      
       console.log("Starting Google authentication with popup...");
+      console.log("Current domain:", window.location.origin);
+      
       const result = await signInWithPopup(this.auth, provider);
       console.log("Google sign in success:", result.user);
       
       // onAuthStateChanged에서 자동으로 뷰 전환이 처리됨
     } catch (error) {
       console.error("Google sign in error:", error);
+      console.error("Error code:", error.code);
+      console.error("Error message:", error.message);
       
       // 사용자가 팝업을 닫은 경우는 조용히 처리
       if (error.code === 'auth/popup-closed-by-user' || 
@@ -228,16 +239,22 @@ export class AuthView extends BaseView {
           errorMessage += "팝업이 차단되었습니다. 브라우저 설정을 확인해주세요.";
           break;
         case 'auth/operation-not-allowed':
-          errorMessage += "Google 로그인이 비활성화되어 있습니다.";
+          errorMessage += "Google 로그인이 비활성화되어 있습니다. Firebase Console에서 Google 로그인을 활성화해주세요.";
           break;
         case 'auth/unauthorized-domain':
-          errorMessage += "인증되지 않은 도메인입니다.";
+          errorMessage += `인증되지 않은 도메인입니다. Firebase Console에서 ${window.location.origin}을 승인된 도메인에 추가해주세요.`;
           break;
         case 'auth/network-request-failed':
           errorMessage += "네트워크 연결을 확인해주세요.";
           break;
+        case 'auth/invalid-api-key':
+          errorMessage += "잘못된 API 키입니다. Firebase 설정을 확인해주세요.";
+          break;
+        case 'auth/app-not-authorized':
+          errorMessage += "앱이 승인되지 않았습니다. Firebase Console에서 설정을 확인해주세요.";
+          break;
         default:
-          errorMessage += error.message;
+          errorMessage += `${error.code}: ${error.message}`;
       }
       
       alert(errorMessage);
