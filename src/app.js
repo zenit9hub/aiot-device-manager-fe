@@ -25,9 +25,16 @@ import { AppManager } from './AppManager.js';
 
 // Initialize Firebase application
 try {
-  console.log('Firebase config:', firebaseConfig);
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+  
+  // Analytics 초기화 (선택적)
+  let analytics = null;
+  try {
+    analytics = getAnalytics(app);
+  } catch (analyticsError) {
+    console.warn('Analytics initialization failed:', analyticsError.message);
+  }
+  
   const auth = getAuth(app);
   const db = getFirestore(app);
 

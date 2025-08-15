@@ -3,8 +3,6 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
   GoogleAuthProvider,
   signOut,
   onAuthStateChanged
@@ -56,9 +54,6 @@ export class AuthView extends BaseView {
   async initialize() {
     this.setupEventListeners();
     this.setupAuthStateListener();
-    
-    // 페이지 로드 시 redirect 결과 확인
-    await this.checkRedirectResult();
   }
 
   async cleanup() {
@@ -112,20 +107,25 @@ export class AuthView extends BaseView {
     this.currentUser = user;
     this.updateUserInfo(user);
 
+    // ViewManager가 준비되지 않았으면 무시 (초기화 중)
+    if (!this.viewManager) {
+      console.log('ViewManager not ready yet, skipping navigation');
+      return;
+    }
+
     if (user) {
-      // 로그인 성공 - 디바이스 목록 뷰로 이동
-      if (this.viewManager) {
+      // 로그인 성공 - 현재 뷰가 auth가 아니면 디바이스 목록으로 이동
+      const currentView = this.viewManager.getCurrentView();
+      if (!currentView || currentView.name !== 'deviceList') {
+        console.log('User logged in, navigating to device list');
         this.navigateTo('deviceList', { user });
-      } else {
-        console.log('ViewManager not ready yet, will be handled by AppManager');
       }
     } else {
-      // 로그아웃 - 인증 뷰 표시
-      console.log('User signed out, navigating to auth view');
-      if (this.viewManager) {
+      // 로그아웃 - 현재 뷰가 auth가 아니면 인증 뷰로 이동
+      const currentView = this.viewManager.getCurrentView();
+      if (!currentView || currentView.name !== 'auth') {
+        console.log('User signed out, navigating to auth view');
         this.navigateTo('auth');
-      } else {
-        console.log('ViewManager not ready yet, will be handled by AppManager');
       }
     }
   }
@@ -189,38 +189,58 @@ export class AuthView extends BaseView {
   }
 
   /**
-   * 구글 로그인
+   * 구글 로그인 - 현재 사용자 상태 확인 후 팝업 사용
    */
   async handleGoogleLogin() {
     try {
-      const provider = new GoogleAuthProvider();
-      
-      // 팝업 시도 먼저
-      try {
-        const result = await signInWithPopup(this.auth, provider);
-        console.log("Google sign in success (popup):", result.user);
-        alert("Successfully signed in with Google!");
+      // 이미 로그인된 사용자가 있는지 확인
+      if (this.auth.currentUser) {
+        console.log("User already logged in:", this.auth.currentUser.email);
         return;
-      } catch (popupError) {
-        console.log("Popup failed, trying redirect:", popupError.code);
-        
-        // 팝업이 차단되거나 실패하면 redirect 방식 사용
-        if (popupError.code === 'auth/popup-blocked' || 
-            popupError.code === 'auth/cancelled-popup-request' ||
-            popupError.code === 'auth/popup-closed-by-user') {
-          
-          console.log("Using redirect method for Google sign in");
-          alert("팝업이 차단되었습니다. 페이지 리디렉션으로 로그인을 진행합니다.");
-          await signInWithRedirect(this.auth, provider);
-          return;
-        }
-        
-        // 다른 에러는 그대로 throw
-        throw popupError;
       }
+      
+      const provider = new GoogleAuthProvider();
+      // 빠른 팝업 응답을 위한 설정
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      
+      console.log("Starting Google authentication with popup...");
+      const result = await signInWithPopup(this.auth, provider);
+      console.log("Google sign in success:", result.user);
+      
+      // onAuthStateChanged에서 자동으로 뷰 전환이 처리됨
     } catch (error) {
       console.error("Google sign in error:", error);
-      alert("Google 로그인 중 오류가 발생했습니다: " + error.message);
+      
+      // 사용자가 팝업을 닫은 경우는 조용히 처리
+      if (error.code === 'auth/popup-closed-by-user' || 
+          error.code === 'auth/cancelled-popup-request') {
+        console.log("User cancelled Google login");
+        return;
+      }
+      
+      // 실제 에러만 사용자에게 표시
+      let errorMessage = "Google 로그인 중 오류가 발생했습니다: ";
+      
+      switch (error.code) {
+        case 'auth/popup-blocked':
+          errorMessage += "팝업이 차단되었습니다. 브라우저 설정을 확인해주세요.";
+          break;
+        case 'auth/operation-not-allowed':
+          errorMessage += "Google 로그인이 비활성화되어 있습니다.";
+          break;
+        case 'auth/unauthorized-domain':
+          errorMessage += "인증되지 않은 도메인입니다.";
+          break;
+        case 'auth/network-request-failed':
+          errorMessage += "네트워크 연결을 확인해주세요.";
+          break;
+        default:
+          errorMessage += error.message;
+      }
+      
+      alert(errorMessage);
     }
   }
 
@@ -238,23 +258,6 @@ export class AuthView extends BaseView {
     }
   }
 
-  /**
-   * Redirect 결과 확인
-   */
-  async checkRedirectResult() {
-    try {
-      const result = await getRedirectResult(this.auth);
-      if (result) {
-        console.log("Google sign in success (redirect):", result.user);
-        alert("Successfully signed in with Google!");
-      }
-    } catch (error) {
-      console.error("Redirect result error:", error);
-      if (error.code !== 'auth/no-redirect-operation') {
-        alert("Google 로그인 중 오류가 발생했습니다: " + error.message);
-      }
-    }
-  }
 
   /**
    * 현재 사용자 반환

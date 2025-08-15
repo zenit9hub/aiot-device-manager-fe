@@ -56,21 +56,10 @@ export class AppManager {
    * 초기 뷰 결정
    */
   async determineInitialView() {
-    // 현재 사용자 상태를 즉시 확인
-    const currentUser = this.auth.currentUser;
-    
-    if (currentUser) {
-      console.log('User already logged in, navigating to device list');
-      // 이미 로그인된 사용자가 있으면 디바이스 목록으로 바로 이동
-      await this.viewManager.navigateTo('deviceList', { user: currentUser });
-    } else {
-      console.log('No user logged in, showing auth view');
-      // 로그인되지 않은 경우 인증 뷰 표시
-      await this.viewManager.navigateTo('auth');
-    }
-    
-    // AuthView에서 onAuthStateChanged 리스너가 이미 설정되므로
-    // 여기서는 중복 설정하지 않음
+    // AuthView의 onAuthStateChanged 리스너가 auth state를 처리하므로
+    // 여기서는 초기 뷰만 설정 (auth state 변경은 AuthView에서 처리)
+    console.log('Setting initial view to auth');
+    await this.viewManager.navigateTo('auth');
   }
 
   /**
