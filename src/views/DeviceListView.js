@@ -258,8 +258,6 @@ export class DeviceListView extends BaseView {
   async handleLogout() {
     try {
       await signOut(this.auth);
-      console.log("Successfully signed out from header");
-      // AuthView의 onAuthStateChanged가 자동으로 뷰 전환을 처리함
     } catch (error) {
       console.error("Header sign out error:", error);
       alert("Error: " + error.message);

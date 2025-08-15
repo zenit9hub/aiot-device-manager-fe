@@ -50,17 +50,13 @@ try {
    */
   document.addEventListener('DOMContentLoaded', async () => {
     try {
-      console.log('Initializing application with view-based architecture...');
-      
       // Create and initialize app manager
       appManager = new AppManager(firebaseServices);
       
-      // Export app manager for debugging immediately after creation
+      // Export app manager for debugging
       window.appManager = appManager;
       
       await appManager.initialize();
-      
-      console.log('Application initialized successfully');
     } catch (error) {
       console.error('Failed to initialize application:', error);
       alert('애플리케이션 초기화 중 오류가 발생했습니다: ' + error.message);
@@ -76,7 +72,6 @@ try {
       await appManager.cleanup();
     }
   });
-
 
 } catch (error) {
   console.error('Firebase initialization error:', error);

@@ -43,7 +43,6 @@ export class ViewManager {
     this.currentView = view;
     await view.onEnter(data);
     
-    console.log(`Navigated to view: ${viewName}`);
   }
 
   /**

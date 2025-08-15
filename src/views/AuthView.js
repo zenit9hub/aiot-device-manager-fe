@@ -85,8 +85,7 @@ export class AuthView extends BaseView {
    * 이벤트 리스너 제거
    */
   removeEventListeners() {
-    // 실제 구현에서는 저장된 리스너 참조를 제거해야 함
-    // 현재는 간단히 처리
+    // 뷰가 정리될 때 자동으로 DOM 요소와 함께 리스너도 정리됨
   }
 
   /**
@@ -103,28 +102,24 @@ export class AuthView extends BaseView {
    * @param {Object} user - Firebase user object
    */
   handleAuthStateChange(user) {
-    console.log('Auth state changed:', user);
     this.currentUser = user;
     this.updateUserInfo(user);
 
     // ViewManager가 준비되지 않았으면 무시 (초기화 중)
     if (!this.viewManager) {
-      console.log('ViewManager not ready yet, skipping navigation');
       return;
     }
 
     if (user) {
-      // 로그인 성공 - 현재 뷰가 auth가 아니면 디바이스 목록으로 이동
+      // 로그인 성공 시 디바이스 목록으로 이동
       const currentView = this.viewManager.getCurrentView();
       if (!currentView || currentView.name !== 'deviceList') {
-        console.log('User logged in, navigating to device list');
         this.navigateTo('deviceList', { user });
       }
     } else {
-      // 로그아웃 - 현재 뷰가 auth가 아니면 인증 뷰로 이동
+      // 로그아웃 시 인증 뷰로 이동
       const currentView = this.viewManager.getCurrentView();
       if (!currentView || currentView.name !== 'auth') {
-        console.log('User signed out, navigating to auth view');
         this.navigateTo('auth');
       }
     }
@@ -157,8 +152,7 @@ export class AuthView extends BaseView {
         return;
       }
 
-      const result = await signInWithEmailAndPassword(this.auth, email, password);
-      console.log("Email sign in success:", result.user);
+      await signInWithEmailAndPassword(this.auth, email, password);
       alert("Successfully signed in!");
     } catch (error) {
       console.error("Email sign in error:", error);
@@ -179,8 +173,7 @@ export class AuthView extends BaseView {
         return;
       }
 
-      const result = await createUserWithEmailAndPassword(this.auth, email, password);
-      console.log("Email sign up success:", result.user);
+      await createUserWithEmailAndPassword(this.auth, email, password);
       alert("Successfully signed up!");
     } catch (error) {
       console.error("Email sign up error:", error);
@@ -195,7 +188,6 @@ export class AuthView extends BaseView {
     try {
       // 이미 로그인된 사용자가 있는지 확인
       if (this.auth.currentUser) {
-        console.log("User already logged in:", this.auth.currentUser.email);
         return;
       }
       
@@ -208,17 +200,11 @@ export class AuthView extends BaseView {
         access_type: 'online'
       });
       
-      // OAuth scopes 추가 (필요시)
+      // OAuth scopes 추가
       provider.addScope('profile');
       provider.addScope('email');
       
-      console.log("Starting Google authentication with popup...");
-      console.log("Current domain:", window.location.origin);
-      
-      const result = await signInWithPopup(this.auth, provider);
-      console.log("Google sign in success:", result.user);
-      
-      // onAuthStateChanged에서 자동으로 뷰 전환이 처리됨
+      await signInWithPopup(this.auth, provider);
     } catch (error) {
       console.error("Google sign in error:", error);
       console.error("Error code:", error.code);
@@ -227,7 +213,6 @@ export class AuthView extends BaseView {
       // 사용자가 팝업을 닫은 경우는 조용히 처리
       if (error.code === 'auth/popup-closed-by-user' || 
           error.code === 'auth/cancelled-popup-request') {
-        console.log("User cancelled Google login");
         return;
       }
       
@@ -267,8 +252,6 @@ export class AuthView extends BaseView {
   async handleLogout() {
     try {
       await signOut(this.auth);
-      console.log("Successfully signed out");
-      // AuthView의 onAuthStateChanged가 자동으로 뷰 전환을 처리함
     } catch (error) {
       console.error("Sign out error:", error);
       alert("Error: " + error.message);

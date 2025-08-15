@@ -45,7 +45,6 @@ export class AppManager {
       // 현재 사용자 상태 확인하여 적절한 초기 뷰 설정
       await this.determineInitialView();
 
-      console.log('AppManager initialized successfully');
     } catch (error) {
       console.error('AppManager initialization error:', error);
       throw error;
@@ -58,7 +57,6 @@ export class AppManager {
   async determineInitialView() {
     // AuthView의 onAuthStateChanged 리스너가 auth state를 처리하므로
     // 여기서는 초기 뷰만 설정 (auth state 변경은 AuthView에서 처리)
-    console.log('Setting initial view to auth');
     await this.viewManager.navigateTo('auth');
   }
 
