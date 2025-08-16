@@ -1,5 +1,23 @@
 # CLAUDE.md
 
+## 🎓 **교육 프로젝트 개요**
+
+이 프로젝트는 **"모던클라우드 기반 서비스 플랫폼 설계, 구축 및 배포"** 교육과정의 실습 자료입니다.
+
+### **교육 목적**
+**2일 집중 과정 (이론 7시간 + 실습 7시간)**을 통해 Firebase 기반 빠른 배포 전략부터 AWS 기반 엔터프라이즈 아키텍처까지, **점진적 확장의 실무 경험**을 제공합니다.
+
+### **핵심 학습 철학**
+> *"왜 이 기술을 선택해야 하는가?"*에 대한 명확한 답을 **직접 체험**을 통해 습득
+
+**학습 여정**:
+```
+Firebase Only MVP → 한계 체험 → Enterprise 아키텍처
+    (빠른 배포)     → (현실의 벽) → (확장 가능한 해결책)
+```
+
+---
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Development Commands
@@ -80,22 +98,75 @@ Firebase config requires both Authentication and Firestore:
 - Responsive design for mobile and desktop usage
 - AWS Amplify deployment configuration included (`amplify.yml`)
 
-## Future Architecture Plans
+## 🚀 **교육 과정별 아키텍처 진화**
 
-This frontend-focused project serves as Phase 1 of a larger AIoT system. Future development will include:
+### **Phase 1: Firebase-Only MVP (현재 구현됨)**
+**학습 목표**: *"서버 없이도 이런 게 가능해!"*
 
-### Phase 2: Backend Integration
-- **NestJS Backend**: Enterprise-grade API server with Firebase Auth integration
-- **PostgreSQL (RDS)**: User profile and sensitive data storage
-- **Hybrid Data Architecture**: 
-  - Firestore: Real-time device status, MQTT data, notifications
-  - RDS: User profiles, device metadata, usage analytics, audit logs
-- **Firebase Token Validation**: Backend API authentication using Firebase Admin SDK
+```
+Frontend ← Firebase Auth ← Firestore
+         ↑
+   "빠른 배포의 마법"
+```
 
-### Phase 3: Advanced Features (Optional)
-- **AWS Lambda Functions**: Serverless microservices for specialized tasks
-- **Data Analytics**: Usage patterns and device performance insights  
-- **Multi-tenant Support**: Organization and role-based access control
-- **Integration APIs**: Third-party IoT platform connections
+**체험 내용**:
+- ⚡ 하루 만에 완성되는 실시간 IoT 관리 시스템
+- 🔥 Firebase의 통합 생태계 (Auth + Firestore + Hosting)
+- 🌐 AWS Amplify 원클릭 배포
+- 💰 사용량 기반 과금의 경제성
 
-**Related Repository**: `aiot-device-manager-be` (Backend API)
+### **Phase 2: 현실의 한계 체험**
+**학습 목표**: *"왜 백엔드가 필요한지 깨닫기"*
+
+**한계 상황 시뮬레이션**:
+- 📊 복잡한 데이터 분석 요구사항 (Firestore 쿼리 제한)
+- 🔒 엔터프라이즈급 감사 로그 및 권한 관리
+- 🔗 외부 시스템(ERP, 회계) 연동 필요성
+- ⚙️ 서버사이드 비즈니스 로직의 한계
+- 📧 이메일 발송, 배치 처리 등의 백그라운드 작업
+
+### **Phase 3: Enterprise 아키텍처 구축**
+**학습 목표**: *"확장 가능한 해결책 구현"*
+
+```
+Frontend ← Firebase Auth ← NestJS Backend ← PostgreSQL
+         ↑                      ↓
+      Firestore              External APIs
+    (실시간 데이터)           (ERP, Email, etc.)
+```
+
+**구현 범위**:
+- 🏗️ **NestJS Backend**: TypeScript 기반 엔터프라이즈 API 서버
+- 🐘 **PostgreSQL (RDS)**: 사용자 프로필 및 분석 데이터 저장
+- 🔄 **하이브리드 데이터 전략**: 
+  - Firestore: 실시간 디바이스 상태, MQTT 데이터, 알림
+  - RDS: 사용자 프로필, 디바이스 메타데이터, 사용 통계, 감사 로그
+- 🔐 **Firebase Token 검증**: Backend API 인증
+- 🐳 **Docker 컨테이너화**: 표준화된 배포 전략
+
+### **Phase 4: 향후 확장 계획 (선택적)**
+**학습 목표**: *"Kubernetes까지의 로드맵 이해"*
+
+- 🌐 **Kubernetes 배포**: 컨테이너 오케스트레이션
+- 📈 **마이크로서비스**: 서비스 분해 및 관리
+- 🔄 **CI/CD 파이프라인**: GitHub Actions 자동화
+- 📊 **모니터링**: Prometheus + Grafana
+- ⚡ **AWS Lambda**: 특정 기능의 서버리스 분리
+
+---
+
+## 🎯 **교육과정에서 체득하는 핵심 역량**
+
+### **기술적 역량**
+- ✅ **Firebase 생태계**: Auth, Firestore, Hosting 통합 활용
+- ✅ **AWS 클라우드**: Amplify, RDS, EC2 실무 경험
+- ✅ **백엔드 아키텍처**: NestJS + TypeORM + PostgreSQL
+- ✅ **DevOps 기초**: Docker, 환경 분리, 배포 자동화
+
+### **아키텍처 설계 철학**
+- 🤔 **적절한 기술 선택**: 언제 Firebase vs Backend API?
+- 🤔 **데이터 분산 전략**: 실시간성 vs 일관성의 트레이드오프
+- 🤔 **점진적 확장**: MVP에서 Enterprise급까지의 자연스러운 진화
+- 🤔 **비용 최적화**: 기술 선택이 비즈니스에 미치는 영향
+
+**Related Repository**: `aiot-device-manager-be` (Backend API - Phase 3에서 구현)
