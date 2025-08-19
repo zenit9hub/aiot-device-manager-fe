@@ -25,8 +25,8 @@ export class DeviceDetailView extends BaseView {
     this.populateDeviceInfo();
     this.initializeTemperatureChart();
     
-    // 온도 센서의 경우 특정 토픽 사용
-    const mqttTopic = this.device.type === 'sensor' ? 'kiot/zenit/notebook/temp-sensor' : `kiot/${this.device.location}/sensor/temperature`;
+    // 디바이스 위치 기반으로 MQTT 토픽 구독
+    const mqttTopic = `${this.device.location}`;
     this.connectToMQTT(mqttTopic);
   }
 
@@ -173,8 +173,8 @@ export class DeviceDetailView extends BaseView {
     // MQTT 토픽 UI에 표시
     document.getElementById('detail-mqtt-topic').textContent = topic;
     
-    // MQTT broker configuration - EMQX public broker
-    const brokerUrl = 'wss://broker.emqx.io:8084/mqtt';
+    // MQTT broker configuration - Mosquitto public broker
+    const brokerUrl = 'wss://test.mosquitto.org:8081';
     
     try {
       this.mqttClient = mqtt.connect(brokerUrl, {
@@ -183,12 +183,12 @@ export class DeviceDetailView extends BaseView {
         reconnectPeriod: 3000,
         connectTimeout: 5000,
         keepalive: 60,
-        username: '', // EMQX public broker는 인증 불필요
+        username: '', // Mosquitto public broker는 인증 불필요
         password: ''
       });
       
       this.mqttClient.on('connect', () => {
-        console.log('MQTT connected to broker.emqx.io');
+        console.log('MQTT connected to test.mosquitto.org');
         this.updateConnectionStatus('connected');
         
         // Subscribe to the device topic
