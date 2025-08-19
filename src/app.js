@@ -4,6 +4,7 @@
  * Firebase 인증과 Firestore를 활용한 실시간 AIoT 디바이스 관리 애플리케이션입니다.
  * 뷰 기반 아키텍처로 리팩토링되었습니다.
  * 
+ 
  * Features:
  * - Email/Password Authentication
  * - Google OAuth Authentication
