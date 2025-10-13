@@ -3,8 +3,8 @@
 > **"모던클라우드 기반 서비스 플랫폼 설계, 구축 및 배포"** 교육과정 실습 프로젝트
 
 ## 📚 **교육 과정 개요**
-**2일 집중 과정 (이론 7시간 + 실습 7시간)**  
-Firebase 기반 빠른 배포부터 AWS 기반 엔터프라이즈 아키텍처까지, 
+**2일 집중 과정 (이론 7시간 + 실습 7시간)**
+Firebase 기반 빠른 배포부터 AWS 기반 엔터프라이즈 아키텍처까지,
 실무에서 직면하는 **"언제 어떤 기술을 선택해야 하는가?"**에 대한 명확한 답을 제공합니다.
 
 ### 🎯 **학습 목표**
@@ -144,10 +144,25 @@ A real-time AIoT (Artificial Intelligence of Things) device management applicati
    VITE_FIREBASE_APP_ID=your-app-id
    ```
 
-4. **Firebase Console Setup**
-   - Enable Authentication (Email/Password and Google providers)
-   - Enable Firestore Database
-   - Set up Firestore security rules for user data isolation
+4. **Firebase Console Setup** ⚠️ **매우 중요!**
+
+   **필수 설정:**
+
+   a. **Enable Authentication**
+   - Firebase Console → Authentication → Sign-in method
+   - Email/Password 활성화
+   - Google 활성화 (support email 설정 필요)
+
+   b. **Authorized Domains 추가**
+   - Firebase Console → Authentication → Settings → Authorized domains
+   - `localhost` 추가 (개발 환경용)
+
+   c. **Enable Firestore Database**
+   - Firebase Console → Firestore Database
+   - Create database
+   - Start in production mode
+
+   📖 **상세 가이드:** `FIREBASE_SETUP_GUIDE.md` 참조
 
 5. **Start development server**
    ```bash
@@ -173,28 +188,40 @@ This project includes AWS Amplify configuration (`amplify.yml`):
 ## 📁 Project Structure
 
 ```
-firebase-auth-sample-working/
+aiot-device-manager-fe-working/
 ├── src/
-│   ├── app.js                 # Main application logic
-│   └── config/
-│       └── firebase.config.js # Firebase configuration
+│   ├── app.js                      # Main application logic
+│   ├── AppManager.js               # Application manager
+│   ├── config/
+│   │   └── firebase.config.js      # Firebase configuration
+│   └── views/                      # View components
+│       ├── AuthView.js             # Authentication view
+│       ├── DeviceListView.js       # Device list view
+│       └── DeviceDetailView.js     # Device detail view
 ├── styles/
-│   └── style.css             # Custom styles
-├── index.html                # Entry point
-├── vite.config.js           # Vite configuration
-├── amplify.yml              # AWS Amplify config
-├── CLAUDE.md                # Development guidance
-└── package.json             # Dependencies
+│   └── style.css                   # Custom styles
+├── public/
+│   └── favicon.svg                 # App favicon
+├── index.html                      # Entry point
+├── vite.config.js                  # Vite configuration
+├── amplify.yml                     # AWS Amplify config
+└── package.json                    # Dependencies
 ```
 
 ## 🔧 Tech Stack
 
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS (CDN)
 - **Build Tool**: Vite
 - **Backend**: Firebase (Authentication + Firestore)
 - **Deployment**: AWS Amplify
 - **Real-time**: Firestore onSnapshot listeners
+- **Architecture**: View-based pattern
+
+## 📖 Documentation
+
+- 📘 **[Firebase Setup Guide](FIREBASE_SETUP_GUIDE.md)** - Firebase Console 설정 가이드
+- 📕 **[Deployment Guide](DEPLOYMENT.md)** - AWS Amplify 배포 가이드
 
 ## 📱 Usage
 
@@ -239,7 +266,7 @@ firebase-auth-sample-working/
 ### **향후 학습 로드맵**
 이 과정을 통해 다음 단계 학습을 위한 탄탄한 기반을 마련하게 됩니다:
 - 🌐 **Kubernetes 배포**: 컨테이너 오케스트레이션
-- 📈 **마이크로서비스**: 서비스 분해 및 관리 전략  
+- 📈 **마이크로서비스**: 서비스 분해 및 관리 전략
 - 🔄 **CI/CD 파이프라인**: 자동화된 배포 시스템
 - 📊 **모니터링 & 로깅**: 운영 환경에서의 시스템 관찰성
 
@@ -247,7 +274,7 @@ firebase-auth-sample-working/
 
 ## 📞 **교육 문의**
 
-이 프로젝트는 **"모던클라우드 기반 서비스 플랫폼 설계, 구축 및 배포"** 교육과정의 실습 자료입니다.  
+이 프로젝트는 **"모던클라우드 기반 서비스 플랫폼 설계, 구축 및 배포"** 교육과정의 실습 자료입니다.
 실무 중심의 체계적인 클라우드 아키텍처 학습을 원하시면 교육 과정에 참여해보세요!
 
 ---

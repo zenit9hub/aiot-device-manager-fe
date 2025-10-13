@@ -10,7 +10,7 @@ import {
 
 /**
  * AuthView - 인증 관련 뷰
- * 
+ *
  * 로그인, 회원가입, 로그아웃 기능을 관리합니다.
  */
 export class AuthView extends BaseView {
@@ -19,6 +19,15 @@ export class AuthView extends BaseView {
     this.auth = auth;
     this.currentUser = null;
     this.authStateUnsubscribe = null;
+    this.isLoggingIn = false; // 중복 로그인 방지 플래그
+
+    // 이벤트 핸들러를 바운드 함수로 저장 (중복 등록 방지)
+    this.boundHandlers = {
+      emailLogin: this.handleEmailLogin.bind(this),
+      emailSignup: this.handleEmailSignup.bind(this),
+      googleLogin: this.handleGoogleLogin.bind(this),
+      logout: this.handleLogout.bind(this)
+    };
   }
 
   /**
@@ -30,13 +39,13 @@ export class AuthView extends BaseView {
     if (mainContainer) {
       mainContainer.classList.add('hidden');
     }
-    
+
     // auth-section 표시
     const authSection = document.getElementById("auth-section");
     if (authSection) {
       authSection.classList.remove('hidden');
     }
-    
+
     // BaseView의 show는 호출하지 않음 (auth-section을 직접 제어하므로)
   }
 
@@ -68,24 +77,57 @@ export class AuthView extends BaseView {
    * 이벤트 리스너 설정
    */
   setupEventListeners() {
+    // 먼저 기존 리스너 제거 (중복 방지)
+    this.removeEventListeners();
+
     // Email/Password Login
-    document.getElementById("email-login")?.addEventListener("click", this.handleEmailLogin.bind(this));
-    
+    const emailLoginBtn = document.getElementById("email-login");
+    if (emailLoginBtn) {
+      emailLoginBtn.addEventListener("click", this.boundHandlers.emailLogin);
+    }
+
     // Email/Password Signup
-    document.getElementById("email-signup")?.addEventListener("click", this.handleEmailSignup.bind(this));
-    
+    const emailSignupBtn = document.getElementById("email-signup");
+    if (emailSignupBtn) {
+      emailSignupBtn.addEventListener("click", this.boundHandlers.emailSignup);
+    }
+
     // Google Login
-    document.getElementById("google-login")?.addEventListener("click", this.handleGoogleLogin.bind(this));
-    
+    const googleLoginBtn = document.getElementById("google-login");
+    if (googleLoginBtn) {
+      googleLoginBtn.addEventListener("click", this.boundHandlers.googleLogin);
+    }
+
     // Logout
-    document.getElementById("logout")?.addEventListener("click", this.handleLogout.bind(this));
+    const logoutBtn = document.getElementById("logout");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", this.boundHandlers.logout);
+    }
   }
 
   /**
    * 이벤트 리스너 제거
    */
   removeEventListeners() {
-    // 뷰가 정리될 때 자동으로 DOM 요소와 함께 리스너도 정리됨
+    const emailLoginBtn = document.getElementById("email-login");
+    if (emailLoginBtn) {
+      emailLoginBtn.removeEventListener("click", this.boundHandlers.emailLogin);
+    }
+
+    const emailSignupBtn = document.getElementById("email-signup");
+    if (emailSignupBtn) {
+      emailSignupBtn.removeEventListener("click", this.boundHandlers.emailSignup);
+    }
+
+    const googleLoginBtn = document.getElementById("google-login");
+    if (googleLoginBtn) {
+      googleLoginBtn.removeEventListener("click", this.boundHandlers.googleLogin);
+    }
+
+    const logoutBtn = document.getElementById("logout");
+    if (logoutBtn) {
+      logoutBtn.removeEventListener("click", this.boundHandlers.logout);
+    }
   }
 
   /**
@@ -128,13 +170,13 @@ export class AuthView extends BaseView {
 
   /**
    * 사용자 정보 UI 업데이트
-   * @param {Object} user 
+   * @param {Object} user
    */
   updateUserInfo(user) {
     const userInfoElement = document.getElementById("user-info");
     if (userInfoElement) {
-      userInfoElement.textContent = user ? 
-        `로그인됨: ${user.email}` : 
+      userInfoElement.textContent = user ?
+        `로그인됨: ${user.email}` :
         "Not logged in";
     }
   }
@@ -144,19 +186,29 @@ export class AuthView extends BaseView {
    */
   async handleEmailLogin() {
     try {
-      const email = document.getElementById("email").value;
+      const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
-      
+
       if (!email || !password) {
         alert("이메일과 비밀번호를 입력해주세요.");
         return;
       }
 
       await signInWithEmailAndPassword(this.auth, email, password);
-      alert("Successfully signed in!");
+      // 성공 시 자동으로 화면 전환되므로 alert 불필요
     } catch (error) {
-      console.error("Email sign in error:", error);
-      alert("Error: " + error.message);
+      console.error("Email 로그인 에러:", error);
+
+      const errorMessages = {
+        'auth/invalid-email': '유효하지 않은 이메일 형식입니다.',
+        'auth/user-disabled': '비활성화된 계정입니다.',
+        'auth/user-not-found': '존재하지 않는 계정입니다.',
+        'auth/wrong-password': '비밀번호가 틀렸습니다.',
+        'auth/invalid-credential': '이메일 또는 비밀번호가 올바르지 않습니다.',
+        'auth/too-many-requests': '너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.'
+      };
+
+      alert(errorMessages[error.code] || `로그인 오류: ${error.message}`);
     }
   }
 
@@ -165,85 +217,86 @@ export class AuthView extends BaseView {
    */
   async handleEmailSignup() {
     try {
-      const email = document.getElementById("email").value;
+      const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
-      
+
       if (!email || !password) {
         alert("이메일과 비밀번호를 입력해주세요.");
         return;
       }
 
+      if (password.length < 6) {
+        alert("비밀번호는 최소 6자 이상이어야 합니다.");
+        return;
+      }
+
       await createUserWithEmailAndPassword(this.auth, email, password);
-      alert("Successfully signed up!");
+      // 성공 시 자동으로 화면 전환되므로 alert 불필요
     } catch (error) {
-      console.error("Email sign up error:", error);
-      alert("Error: " + error.message);
+      console.error("Email 가입 에러:", error);
+
+      const errorMessages = {
+        'auth/email-already-in-use': '이미 사용 중인 이메일입니다.',
+        'auth/invalid-email': '유효하지 않은 이메일 형식입니다.',
+        'auth/operation-not-allowed': '이메일/비밀번호 인증이 비활성화되어 있습니다.',
+        'auth/weak-password': '비밀번호가 너무 약합니다. (최소 6자 이상)'
+      };
+
+      alert(errorMessages[error.code] || `가입 오류: ${error.message}`);
     }
   }
 
   /**
-   * 구글 로그인 - 현재 사용자 상태 확인 후 팝업 사용
+   * 구글 로그인 - 간결한 버전 (중복 클릭 방지 포함)
    */
   async handleGoogleLogin() {
     try {
-      // 이미 로그인된 사용자가 있는지 확인
-      if (this.auth.currentUser) {
-        return;
-      }
-      
+      // 중복 클릭 방지
+      if (this.isLoggingIn || this.auth.currentUser) return;
+
+      this.isLoggingIn = true;
+      this.updateLoginButtonState(true);
+
       const provider = new GoogleAuthProvider();
-      
-      // Google OAuth 설정 강화
-      provider.setCustomParameters({
-        prompt: 'select_account',
-        include_granted_scopes: 'true',
-        access_type: 'online'
-      });
-      
-      // OAuth scopes 추가
-      provider.addScope('profile');
-      provider.addScope('email');
-      
+      provider.setCustomParameters({ prompt: 'select_account' });
+
       await signInWithPopup(this.auth, provider);
+
     } catch (error) {
-      console.error("Google sign in error:", error);
-      console.error("Error code:", error.code);
-      console.error("Error message:", error.message);
-      
-      // 사용자가 팝업을 닫은 경우는 조용히 처리
-      if (error.code === 'auth/popup-closed-by-user' || 
+      // 팝업 닫힘은 조용히 처리
+      if (error.code === 'auth/popup-closed-by-user' ||
           error.code === 'auth/cancelled-popup-request') {
         return;
       }
-      
-      // 실제 에러만 사용자에게 표시
-      let errorMessage = "Google 로그인 중 오류가 발생했습니다: ";
-      
-      switch (error.code) {
-        case 'auth/popup-blocked':
-          errorMessage += "팝업이 차단되었습니다. 브라우저 설정을 확인해주세요.";
-          break;
-        case 'auth/operation-not-allowed':
-          errorMessage += "Google 로그인이 비활성화되어 있습니다. Firebase Console에서 Google 로그인을 활성화해주세요.";
-          break;
-        case 'auth/unauthorized-domain':
-          errorMessage += `인증되지 않은 도메인입니다. Firebase Console에서 ${window.location.origin}을 승인된 도메인에 추가해주세요.`;
-          break;
-        case 'auth/network-request-failed':
-          errorMessage += "네트워크 연결을 확인해주세요.";
-          break;
-        case 'auth/invalid-api-key':
-          errorMessage += "잘못된 API 키입니다. Firebase 설정을 확인해주세요.";
-          break;
-        case 'auth/app-not-authorized':
-          errorMessage += "앱이 승인되지 않았습니다. Firebase Console에서 설정을 확인해주세요.";
-          break;
-        default:
-          errorMessage += `${error.code}: ${error.message}`;
-      }
-      
-      alert(errorMessage);
+
+      // 실제 에러만 표시
+      console.error('Google 로그인 에러:', error);
+
+      const errorMessages = {
+        'auth/popup-blocked': '팝업이 차단되었습니다.',
+        'auth/operation-not-allowed': 'Google 로그인이 비활성화되어 있습니다.',
+        'auth/unauthorized-domain': `도메인(${window.location.origin})이 승인되지 않았습니다.`,
+        'auth/network-request-failed': '네트워크 연결을 확인해주세요.'
+      };
+
+      alert(errorMessages[error.code] || `로그인 오류: ${error.message}`);
+    } finally {
+      this.isLoggingIn = false;
+      this.updateLoginButtonState(false);
     }
+  }
+
+  /**
+   * 로그인 버튼 상태 업데이트
+   */
+  updateLoginButtonState(isLoading) {
+    const button = document.getElementById('google-login');
+    if (!button) return;
+
+    button.disabled = isLoading;
+    button.textContent = isLoading ? '로그인 중...' : 'Login with Google';
+    button.classList.toggle('opacity-50', isLoading);
+    button.classList.toggle('cursor-not-allowed', isLoading);
   }
 
   /**
