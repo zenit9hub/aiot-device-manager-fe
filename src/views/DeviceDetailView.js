@@ -39,10 +39,18 @@ export class DeviceDetailView extends BaseView {
 
     // MQTT 브로커 URL을 config에서 가져오기
     const brokerUrl = getMqttBrokerUrl();
-    const topic = `${appConfig.mqtt.topicPrefix}/${this.device.location}`;
-    
-    console.log(`[DeviceDetail] Connecting to MQTT broker: ${brokerUrl}`);
-    console.log(`[DeviceDetail] Topic: ${topic}`);
+    // topicPrefix에 이미 /가 포함되어 있을 수 있으므로 처리
+    const prefix = appConfig.mqtt.topicPrefix.endsWith('/') 
+      ? appConfig.mqtt.topicPrefix 
+      : `${appConfig.mqtt.topicPrefix}/`;
+    const topic = `${prefix}${this.device.location}`;
+
+    console.log('='.repeat(60));
+    console.log('[DeviceDetail] MQTT 연결 정보:');
+    console.log(`  브로커: ${brokerUrl}`);
+    console.log(`  토픽: ${topic}`);
+    console.log(`  디바이스 위치: ${this.device.location}`);
+    console.log('='.repeat(60));
 
     // MQTT 연결 및 구독
     this.mqttManager.connect(brokerUrl, appConfig.mqtt.options);
@@ -63,6 +71,8 @@ export class DeviceDetailView extends BaseView {
    * MQTT 메시지 처리
    */
   handleMQTTMessage(topic, message) {
+    console.log(`[DeviceDetail] 📨 메시지 수신:`, { topic, message });
+
     try {
       // 메시지 표시
       const messageElement = document.getElementById('detail-mqtt-last-message');
@@ -73,10 +83,14 @@ export class DeviceDetailView extends BaseView {
 
       // JSON 파싱 시도
       const data = JSON.parse(message);
+      console.log('[DeviceDetail] 📊 파싱된 데이터:', data);
 
       // 온도 데이터가 있으면 차트에 추가
       if (data.temperature !== undefined) {
+        console.log(`[DeviceDetail] 🌡️ 온도 데이터 추가: ${data.temperature}°C`);
         this.temperatureChart.addData(data.temperature);
+      } else {
+        console.warn('[DeviceDetail] ⚠️ 온도 데이터가 없습니다:', data);
       }
     } catch (error) {
       // JSON이 아닌 경우 그냥 표시만

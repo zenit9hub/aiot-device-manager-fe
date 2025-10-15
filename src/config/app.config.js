@@ -75,17 +75,17 @@ export const appConfig = {
   // ========================================
   // MQTT 설정
   // ========================================
-  
+
   mqtt: {
-    // MQTT 브로커 선택 (broker-option1 ~ broker-option5 중 선택)
-    brokerOption: "broker-option1",
-    
+    // MQTT 브로커 선택 (broker-option1 ~ broker-option6 중 선택)
+    brokerOption: "broker-option4",
+
     // MQTT 브로커 옵션들
     brokerOptions: {
       "broker-option1": {
         name: "HiveMQ Public Broker",
         url: "ws://broker.hivemq.com:8000/mqtt",
-        description: "무료 공용 브로커 (WebSocket)",
+        description: "무료 공용 브로커 (WebSocket) - 권장",
       },
       "broker-option2": {
         name: "HiveMQ Public Broker (SSL)",
@@ -98,20 +98,25 @@ export const appConfig = {
         description: "Eclipse 재단 공용 브로커",
       },
       "broker-option4": {
-        name: "Mosquitto Public Broker",
+        name: "Mosquitto Test Broker",
         url: "ws://test.mosquitto.org:8080/mqtt",
-        description: "Mosquitto 테스트 브로커",
+        description: "Mosquitto 테스트 브로커 (WebSocket)",
       },
       "broker-option5": {
+        name: "Mosquitto Test Broker (SSL)",
+        url: "wss://test.mosquitto.org:8081/mqtt",
+        description: "Mosquitto 테스트 브로커 (WebSocket Secure)",
+      },
+      "broker-option6": {
         name: "Local Mosquitto Broker",
         url: "ws://localhost:9001/mqtt",
         description: "로컬 Mosquitto 브로커 (직접 설치 필요)",
       },
     },
-    
+
     // MQTT 토픽 프리픽스 (개인화 권장 - 다른 수강생과 중복되지 않도록!)
-    topicPrefix: "zenit/kiot",
-    
+    topicPrefix: "kiot/uniq-zenit/",
+
     // 연결 옵션
     options: {
       clientId: `kiot_${Math.random().toString(16).substr(2, 8)}`,
@@ -295,12 +300,12 @@ export const getThemeClass = (type = 'primary', variant = '500') => {
 export const getMqttBrokerUrl = () => {
   const selectedOption = appConfig.mqtt.brokerOption;
   const broker = appConfig.mqtt.brokerOptions[selectedOption];
-  
+
   if (!broker) {
     console.warn(`Invalid broker option: ${selectedOption}. Using default.`);
     return appConfig.mqtt.brokerOptions["broker-option1"].url;
   }
-  
+
   return broker.url;
 };
 

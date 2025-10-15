@@ -17,6 +17,10 @@ export class MQTTManager {
   connect(brokerUrl = 'ws://broker.hivemq.com:8000/mqtt', options = {}) {
     try {
       console.log('[MQTT] Connecting to broker:', brokerUrl);
+      console.log('[MQTT] Connection options:', options);
+
+      // 연결 상태 업데이트
+      this.updateConnectionStatus('connecting');
 
       this.client = mqtt.connect(brokerUrl, {
         clientId: `web_client_${Math.random().toString(16).substring(2, 8)}`,
@@ -39,9 +43,16 @@ export class MQTTManager {
     if (!this.client) return;
 
     this.client.on('connect', () => {
-      console.log('[MQTT] Connected successfully');
+      console.log('[MQTT] ✅ Connected successfully');
       this.isConnected = true;
       this.updateConnectionStatus('connected');
+
+      // 대기 중인 토픽이 있으면 구독
+      if (this.pendingTopic) {
+        console.log('[MQTT] Subscribing to pending topic:', this.pendingTopic);
+        this.doSubscribe(this.pendingTopic);
+        this.pendingTopic = null;
+      }
     });
 
     this.client.on('error', (error) => {
@@ -65,16 +76,30 @@ export class MQTTManager {
    * 토픽 구독
    */
   subscribe(topic) {
-    if (!this.client || !this.isConnected) {
-      console.warn('[MQTT] Not connected, cannot subscribe');
+    if (!this.client) {
+      console.warn('[MQTT] Client not initialized, cannot subscribe');
       return;
     }
 
-    this.client.subscribe(topic, (err) => {
+    // 연결되어 있으면 즉시 구독
+    if (this.isConnected) {
+      this.doSubscribe(topic);
+    } else {
+      // 연결 대기 중이면 connect 이벤트에서 구독
+      console.log('[MQTT] Waiting for connection before subscribing...');
+      this.pendingTopic = topic;
+    }
+  }
+
+  /**
+   * 실제 구독 수행
+   */
+  doSubscribe(topic) {
+    this.client.subscribe(topic, { qos: 0 }, (err) => {
       if (err) {
         console.error('[MQTT] Subscribe error:', err);
       } else {
-        console.log('[MQTT] Subscribed to:', topic);
+        console.log('[MQTT] ✅ Successfully subscribed to:', topic);
         this.currentTopic = topic;
       }
     });

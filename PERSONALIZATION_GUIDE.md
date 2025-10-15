@@ -122,7 +122,7 @@ appName: "AIoT Manager Pro",
 
 ```javascript
 mqtt: {
-  topicPrefix: "zenit/kiot",  // 기본값
+  topicPrefix: "kiot/uniq-zenit/",  // 기본값
 }
 ```
 
@@ -271,11 +271,12 @@ brokerOption: "broker-option2",
 
 | 옵션 | 이름 | URL | 설명 |
 |------|------|-----|------|
-| broker-option1 | HiveMQ Public | `ws://broker.hivemq.com:8000/mqtt` | 무료 공용 브로커 (기본) |
+| broker-option1 | HiveMQ Public | `ws://broker.hivemq.com:8000/mqtt` | 무료 공용 브로커 (기본, 권장) |
 | broker-option2 | HiveMQ Public (SSL) | `wss://broker.hivemq.com:8884/mqtt` | 보안 연결 |
 | broker-option3 | Eclipse Public | `ws://mqtt.eclipseprojects.io:80/mqtt` | Eclipse 재단 |
-| broker-option4 | Mosquitto Public | `ws://test.mosquitto.org:8080/mqtt` | 테스트용 |
-| broker-option5 | Local Mosquitto | `ws://localhost:9001/mqtt` | 로컬 서버 |
+| broker-option4 | Mosquitto Test | `ws://test.mosquitto.org:8080/mqtt` | 테스트용 (WebSocket) |
+| broker-option5 | Mosquitto Test (SSL) | `wss://test.mosquitto.org:8081/mqtt` | 테스트용 (Secure) |
+| broker-option6 | Local Mosquitto | `ws://localhost:9001/mqtt` | 로컬 서버 |
 
 **커스텀 브로커 추가 방법:**
 
@@ -514,9 +515,40 @@ export const appConfig = {
 
 ### Q2. MQTT 연결이 안 돼요
 **A:**
-1. `mqtt.topicPrefix`가 올바른지 확인
-2. 브로커 URL이 올바른지 확인
-3. 방화벽 설정 확인
+1. **브라우저 개발자 도구(F12)에서 콘솔 확인**
+   - `[MQTT] Connected successfully` 메시지가 보이는지 확인
+   - 에러 메시지가 있다면 해당 내용 확인
+
+2. **브로커 옵션 변경 시도**
+   ```javascript
+   // HiveMQ로 변경 (가장 안정적)
+   brokerOption: "broker-option1",
+   ```
+
+3. **토픽 프리픽스 확인**
+   - `topicPrefix`가 `/`로 끝나는지 확인
+   - 예: `"kiot/myname/"` (O) vs `"kiot/myname"` (X)
+
+4. **방화벽/프록시 확인**
+   - WebSocket 연결을 차단하는 방화벽이 있는지 확인
+   - 회사/학교 네트워크에서는 SSL 버전(`broker-option2`, `broker-option5`) 시도
+
+### Q2-1. MQTT 메시지가 수신되지 않아요 (연결은 됨)
+**A:**
+1. **토픽 이름 확인**
+   - 브라우저 콘솔에서 `[MQTT] Subscribed to:` 메시지 확인
+   - MQTTX에서 발행하는 토픽과 정확히 일치하는지 확인
+
+2. **메시지 형식 확인**
+   - 온도 차트에 표시되려면 JSON 형식이어야 합니다:
+   ```json
+   {"temperature": 25.5}
+   ```
+   - 단순 텍스트는 "마지막 메시지"에만 표시됩니다
+
+3. **디버깅**
+   - 콘솔에서 `[MQTT] Message received` 메시지 확인
+   - 메시지가 수신되는지, 파싱 에러가 있는지 확인
 
 ### Q3. Firebase 인증이 안 돼요
 **A:**
