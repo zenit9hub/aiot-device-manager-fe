@@ -1,6 +1,6 @@
 # 🎨 개인화 설정 가이드
 
-KIoT Device Manager 교육용 프로젝트의 개인화 설정 가이드입니다.  
+KIoT Device Manager 교육용 프로젝트의 개인화 설정 가이드입니다.
 각 수강생은 이 가이드를 참고하여 프로젝트를 자신만의 스타일로 커스터마이징할 수 있습니다.
 
 ---
@@ -69,10 +69,10 @@ VITE_FIREBASE_APP_ID=your-app-id
 export const appConfig = {
   // 애플리케이션 이름 (브라우저 탭, 헤더에 표시)
   appName: "나의 IoT 관리자",  // 👈 여기를 수정하세요
-  
+
   // 애플리케이션 설명
   appDescription: "나만의 스마트홈 관리 시스템",
-  
+
   // 개발자 정보
   developer: {
     name: "홍길동",           // 👈 여기를 수정하세요
@@ -236,26 +236,64 @@ locale: "en",
 
 ---
 
-#### 4.7 MQTT 브로커 변경 ⭐
+#### 4.7 MQTT 브로커 변경 ⭐⭐
 
 **위치**: `src/config/app.config.js`
 
+이제 MQTT 브로커를 **간편하게 옵션으로 선택**할 수 있습니다!
+
 ```javascript
 mqtt: {
-  brokerUrl: "ws://broker.hivemq.com:8000/mqtt",  // 기본값
+  brokerOption: "broker-option1",  // 👈 여기만 변경하세요!
+
+  // 사용 가능한 옵션들:
+  // broker-option1: HiveMQ Public Broker (기본)
+  // broker-option2: HiveMQ Public Broker (SSL)
+  // broker-option3: Eclipse Public Broker
+  // broker-option4: Mosquitto Public Broker
+  // broker-option5: Local Mosquitto Broker (로컬 설치 필요)
 }
 ```
 
-**다른 브로커 예시:**
+**변경 예시:**
 ```javascript
-// 로컬 Mosquitto 브로커
-brokerUrl: "ws://localhost:9001/mqtt",
+// Eclipse 브로커 사용하기
+brokerOption: "broker-option3",
 
-// Eclipse 공용 브로커
-brokerUrl: "ws://mqtt.eclipseprojects.io:80/mqtt",
+// 로컬 Mosquitto 브로커 사용하기 (직접 설치한 경우)
+brokerOption: "broker-option5",
 
-// HiveMQ 공용 브로커 (SSL)
-brokerUrl: "wss://broker.hivemq.com:8884/mqtt",
+// SSL 사용하기 (보안 연결)
+brokerOption: "broker-option2",
+```
+
+**브로커 상세 정보:**
+
+| 옵션 | 이름 | URL | 설명 |
+|------|------|-----|------|
+| broker-option1 | HiveMQ Public | `ws://broker.hivemq.com:8000/mqtt` | 무료 공용 브로커 (기본) |
+| broker-option2 | HiveMQ Public (SSL) | `wss://broker.hivemq.com:8884/mqtt` | 보안 연결 |
+| broker-option3 | Eclipse Public | `ws://mqtt.eclipseprojects.io:80/mqtt` | Eclipse 재단 |
+| broker-option4 | Mosquitto Public | `ws://test.mosquitto.org:8080/mqtt` | 테스트용 |
+| broker-option5 | Local Mosquitto | `ws://localhost:9001/mqtt` | 로컬 서버 |
+
+**커스텀 브로커 추가 방법:**
+
+기존 옵션이 맞지 않다면 직접 추가할 수 있습니다:
+
+```javascript
+mqtt: {
+  brokerOption: "broker-option6",  // 새로운 옵션
+
+  brokerOptions: {
+    // ... 기존 옵션들 ...
+    "broker-option6": {
+      name: "나만의 브로커",
+      url: "ws://my-broker.com:8000/mqtt",
+      description: "커스텀 MQTT 브로커",
+    },
+  },
+}
 ```
 
 ---
@@ -394,13 +432,13 @@ Tailwind CSS 클래스를 수정하여 더 세밀한 스타일 변경 가능:
 export const appConfig = {
   appName: "홍길동의 스마트홈",
   appDescription: "우리집 스마트 디바이스 통합 관리",
-  
+
   developer: {
     name: "홍길동",
     email: "hong@smarthome.com",
     organization: "My Smart Home",
   },
-  
+
   theme: {
     primary: "indigo",
     secondary: "gray",
@@ -408,7 +446,7 @@ export const appConfig = {
     danger: "rose",
     warning: "amber",
   },
-  
+
   device: {
     types: [
       { value: "light", label: "스마트 조명" },
@@ -418,10 +456,10 @@ export const appConfig = {
       { value: "speaker", label: "AI 스피커" },
     ],
   },
-  
+
   mqtt: {
+    brokerOption: "broker-option1",  // HiveMQ 사용
     topicPrefix: "hong/smarthome",
-    // ...
   },
 };
 ```
@@ -433,13 +471,13 @@ export const appConfig = {
 export const appConfig = {
   appName: "Factory IoT Monitor",
   appDescription: "제조 공정 실시간 모니터링 시스템",
-  
+
   developer: {
     name: "김철수",
     email: "kim@factory.com",
     organization: "Smart Factory",
   },
-  
+
   theme: {
     primary: "slate",
     secondary: "zinc",
@@ -447,7 +485,7 @@ export const appConfig = {
     danger: "red",
     warning: "orange",
   },
-  
+
   device: {
     types: [
       { value: "plc", label: "PLC" },
@@ -457,12 +495,12 @@ export const appConfig = {
       { value: "monitor", label: "상태 모니터" },
     ],
   },
-  
+
   mqtt: {
+    brokerOption: "broker-option5",  // 로컬 브로커 사용 (공장 내부망)
     topicPrefix: "factory/line01",
-    // ...
   },
-  
+
   locale: "en",
 };
 ```
@@ -475,7 +513,7 @@ export const appConfig = {
 **A:** 브라우저를 완전히 새로고침하세요 (Ctrl+Shift+R 또는 Cmd+Shift+R)
 
 ### Q2. MQTT 연결이 안 돼요
-**A:** 
+**A:**
 1. `mqtt.topicPrefix`가 올바른지 확인
 2. 브로커 URL이 올바른지 확인
 3. 방화벽 설정 확인

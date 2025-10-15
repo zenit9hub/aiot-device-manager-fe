@@ -1,6 +1,7 @@
 import { BaseView } from './BaseView.js';
 import { MQTTManager } from '../components/MQTTManager.js';
 import { TemperatureChart } from '../components/TemperatureChart.js';
+import { appConfig, getMqttBrokerUrl } from '../config/app.config.js';
 
 /**
  * DeviceDetailView - 디바이스 상세 뷰 (리팩토링)
@@ -36,14 +37,21 @@ export class DeviceDetailView extends BaseView {
       this.handleMQTTMessage(topic, message);
     });
 
+    // MQTT 브로커 URL을 config에서 가져오기
+    const brokerUrl = getMqttBrokerUrl();
+    const topic = `${appConfig.mqtt.topicPrefix}/${this.device.location}`;
+    
+    console.log(`[DeviceDetail] Connecting to MQTT broker: ${brokerUrl}`);
+    console.log(`[DeviceDetail] Topic: ${topic}`);
+
     // MQTT 연결 및 구독
-    this.mqttManager.connect('wss://test.mosquitto.org:8081');
-    this.mqttManager.subscribe(this.device.location);
+    this.mqttManager.connect(brokerUrl, appConfig.mqtt.options);
+    this.mqttManager.subscribe(topic);
 
     // MQTT 토픽 표시
     const topicElement = document.getElementById('detail-mqtt-topic');
     if (topicElement) {
-      topicElement.textContent = this.device.location;
+      topicElement.textContent = topic;
     }
 
     // 차트 초기화

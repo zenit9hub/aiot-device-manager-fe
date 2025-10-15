@@ -15,7 +15,7 @@ export const appConfig = {
    * 애플리케이션 이름
    * - 브라우저 탭 제목과 헤더에 표시됩니다
    */
-  appName: "KIoT Device Manager Zenit",
+  appName: "KIoT Device Manager",
 
   /**
    * 애플리케이션 설명
@@ -75,14 +75,43 @@ export const appConfig = {
   // ========================================
   // MQTT 설정
   // ========================================
-
+  
   mqtt: {
-    // MQTT 브로커 주소
-    brokerUrl: "ws://broker.hivemq.com:8000/mqtt",
-
-    // MQTT 토픽 프리픽스 (개인화 권장)
+    // MQTT 브로커 선택 (broker-option1 ~ broker-option5 중 선택)
+    brokerOption: "broker-option1",
+    
+    // MQTT 브로커 옵션들
+    brokerOptions: {
+      "broker-option1": {
+        name: "HiveMQ Public Broker",
+        url: "ws://broker.hivemq.com:8000/mqtt",
+        description: "무료 공용 브로커 (WebSocket)",
+      },
+      "broker-option2": {
+        name: "HiveMQ Public Broker (SSL)",
+        url: "wss://broker.hivemq.com:8884/mqtt",
+        description: "무료 공용 브로커 (WebSocket Secure)",
+      },
+      "broker-option3": {
+        name: "Eclipse Public Broker",
+        url: "ws://mqtt.eclipseprojects.io:80/mqtt",
+        description: "Eclipse 재단 공용 브로커",
+      },
+      "broker-option4": {
+        name: "Mosquitto Public Broker",
+        url: "ws://test.mosquitto.org:8080/mqtt",
+        description: "Mosquitto 테스트 브로커",
+      },
+      "broker-option5": {
+        name: "Local Mosquitto Broker",
+        url: "ws://localhost:9001/mqtt",
+        description: "로컬 Mosquitto 브로커 (직접 설치 필요)",
+      },
+    },
+    
+    // MQTT 토픽 프리픽스 (개인화 권장 - 다른 수강생과 중복되지 않도록!)
     topicPrefix: "zenit/kiot",
-
+    
     // 연결 옵션
     options: {
       clientId: `kiot_${Math.random().toString(16).substr(2, 8)}`,
@@ -258,5 +287,28 @@ export const getLabels = () => {
 export const getThemeClass = (type = 'primary', variant = '500') => {
   const color = appConfig.theme[type] || appConfig.theme.primary;
   return `${color}-${variant}`;
+};
+
+/**
+ * 선택된 MQTT 브로커 URL 가져오기
+ */
+export const getMqttBrokerUrl = () => {
+  const selectedOption = appConfig.mqtt.brokerOption;
+  const broker = appConfig.mqtt.brokerOptions[selectedOption];
+  
+  if (!broker) {
+    console.warn(`Invalid broker option: ${selectedOption}. Using default.`);
+    return appConfig.mqtt.brokerOptions["broker-option1"].url;
+  }
+  
+  return broker.url;
+};
+
+/**
+ * 선택된 MQTT 브로커 정보 가져오기
+ */
+export const getMqttBrokerInfo = () => {
+  const selectedOption = appConfig.mqtt.brokerOption;
+  return appConfig.mqtt.brokerOptions[selectedOption] || appConfig.mqtt.brokerOptions["broker-option1"];
 };
 

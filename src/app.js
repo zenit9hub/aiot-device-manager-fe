@@ -1,10 +1,10 @@
 /**
  * Firebase AIoT Device Management Application
- * 
+ *
  * Firebase 인증과 Firestore를 활용한 실시간 AIoT 디바이스 관리 애플리케이션입니다.
  * 뷰 기반 아키텍처로 리팩토링되었습니다.
- * 
- 
+ *
+
  * Features:
  * - Email/Password Authentication
  * - Google OAuth Authentication
@@ -30,7 +30,7 @@ import { AppManager } from './AppManager.js';
 // Initialize Firebase application
 try {
   const app = initializeApp(firebaseConfig);
-  
+
   // Analytics 초기화 (선택적)
   let analytics = null;
   try {
@@ -38,7 +38,7 @@ try {
   } catch (analyticsError) {
     console.warn('Analytics initialization failed:', analyticsError.message);
   }
-  
+
   const auth = getAuth(app);
   const db = getFirestore(app);
 
@@ -58,25 +58,25 @@ try {
     if (appTitleEl) {
       appTitleEl.textContent = appConfig.appName;
     }
-    
+
     // Update auth header title
     const authHeaderEl = document.getElementById('auth-header-title');
     if (authHeaderEl) {
       authHeaderEl.textContent = appConfig.appName;
     }
-    
+
     // Update main header title
     const mainHeaderEl = document.getElementById('main-header-title');
     if (mainHeaderEl) {
       mainHeaderEl.textContent = appConfig.appName;
     }
-    
+
     // Update HTML lang attribute
     const htmlEl = document.documentElement;
     if (htmlEl) {
       htmlEl.setAttribute('lang', appConfig.locale);
     }
-    
+
     console.log(`✅ App configuration applied: ${appConfig.appName}`);
   }
 
@@ -88,14 +88,14 @@ try {
     try {
       // Apply app configuration
       applyAppConfig();
-      
+
       // Create and initialize app manager
       appManager = new AppManager(firebaseServices);
-      
+
       // Export app manager and config for debugging
       window.appManager = appManager;
       window.appConfig = appConfig;
-      
+
       await appManager.initialize();
     } catch (error) {
       console.error('Failed to initialize application:', error);
