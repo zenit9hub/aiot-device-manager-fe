@@ -40,22 +40,22 @@
       .device-delete {
         @apply text-red-500 hover:text-red-700 text-sm px-2 py-1 hover:bg-red-50 rounded transition-colors;
       }
-      
+
       /* Loading animation */
       .loading {
         @apply animate-pulse;
       }
-      
+
       /* Empty state animation */
       .fade-in {
         animation: fadeIn 0.5s ease-in;
       }
-      
+
       @keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
       }
-      
+
       /* Screen Navigation Styles */
       .screen {
         @apply hidden;
@@ -87,7 +87,7 @@
     <!-- Authentication Section -->
     <div id="auth-section" class="w-full max-w-md mx-auto bg-white shadow-lg rounded-lg p-6 mb-8">
       <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">KIoT Device Manager Zenit</h1>
-      
+
       <div class="mt-6">
         <h2 class="text-lg font-semibold text-gray-700">Email/Password Login</h2>
         <input type="email" id="email" placeholder="Email" class="w-full p-2 mt-2 border rounded-md" />
@@ -97,15 +97,13 @@
           <button id="email-signup" class="w-1/2 bg-green-500 text-white p-2 rounded-md hover:bg-green-600 ml-2">Sign Up</button>
         </div>
       </div>
-      
+
       <div class="mt-6">
         <h2 class="text-lg font-semibold text-gray-700">Google Login</h2>
         <button id="google-login" class="w-full bg-red-500 text-white p-2 rounded-md hover:bg-red-600 mt-2">Login with Google</button>
         <p class="text-xs text-gray-500 mt-1">※ 팝업이 차단되면 자동으로 페이지 리디렉션 방식으로 진행됩니다.</p>
       </div>
-      
-      <button id="logout" class="w-full bg-gray-600 text-white p-2 rounded-md hover:bg-gray-700 mt-6">Logout</button>
-      
+
       <div class="mt-6">
         <h2 class="text-lg font-semibold text-gray-700">User Status</h2>
         <div id="user-info" class="bg-gray-200 p-2 rounded-md text-sm">Not logged in</div>
@@ -114,7 +112,7 @@
 
     <!-- Main Container -->
     <div id="main-container" class="w-full max-w-4xl mx-auto hidden">
-    
+
     <!-- Device Management Section -->
     <div id="device-list-screen" class="screen active">
       <!-- Header with user info and logout -->
@@ -139,18 +137,18 @@
           <h2 class="text-xl font-bold text-gray-800">디바이스 관리</h2>
           <span id="device-count" class="text-sm text-gray-600">0개의 디바이스</span>
         </div>
-      
+
       <!-- Add Device Form -->
       <div class="mb-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-          <input 
-            type="text" 
-            id="device-name" 
-            placeholder="디바이스 이름..." 
+          <input
+            type="text"
+            id="device-name"
+            placeholder="디바이스 이름..."
             class="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <select 
-            id="device-type" 
+          <select
+            id="device-type"
             class="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="sensor">센서</option>
@@ -158,28 +156,28 @@
             <option value="gateway">게이트웨이</option>
             <option value="camera">카메라</option>
           </select>
-          <input 
-            type="text" 
-            id="device-location" 
-            placeholder="위치 (예: 거실)..." 
+          <input
+            type="text"
+            id="device-location"
+            placeholder="위치 (예: 거실)..."
             class="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <button 
-            id="add-device" 
+          <button
+            id="add-device"
             class="bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition-colors"
           >
             디바이스 추가
           </button>
         </div>
       </div>
-      
+
       <!-- Filter Buttons -->
       <div class="flex gap-2 mb-6">
         <button id="filter-all" class="filter-button px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors active">전체</button>
         <button id="filter-online" class="filter-button px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">온라인</button>
         <button id="filter-offline" class="filter-button px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">오프라인</button>
       </div>
-      
+
         <!-- Device List -->
         <div id="device-list" class="space-y-3 min-h-[200px]">
           <!-- Empty state -->
@@ -191,7 +189,7 @@
             <p class="text-sm mt-1">위에서 새로운 디바이스를 추가해보세요!</p>
           </div>
         </div>
-        
+
         <!-- Device Stats -->
         <div class="mt-6 flex justify-between items-center text-sm text-gray-600 border-t pt-4">
           <div class="flex items-center gap-4">
@@ -222,63 +220,30 @@
 
       <!-- Device Detail Content -->
       <div class="bg-white shadow-lg rounded-lg p-6">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <!-- Basic Information -->
-          <div class="space-y-6">
-            <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">기본 정보</h3>
-            <div class="bg-gray-50 p-6 rounded-lg space-y-4">
-              <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                <span class="text-gray-600 font-medium">디바이스 이름:</span>
-                <span id="detail-device-info-name" class="font-semibold text-gray-800"></span>
-              </div>
-              <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                <span class="text-gray-600 font-medium">타입:</span>
-                <span id="detail-device-info-type" class="font-semibold text-gray-800"></span>
-              </div>
-              <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                <span class="text-gray-600 font-medium">상태:</span>
-                <span id="detail-device-info-status" class="font-semibold text-gray-800"></span>
-              </div>
-              <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                <span class="text-gray-600 font-medium">위치:</span>
-                <span id="detail-device-info-location" class="font-semibold text-gray-800"></span>
-              </div>
-              <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                <span class="text-gray-600 font-medium">배터리:</span>
-                <span id="detail-device-info-battery" class="font-semibold text-gray-800"></span>
-              </div>
-              <div class="flex justify-between items-center py-2">
-                <span class="text-gray-600 font-medium">마지막 접속:</span>
-                <span id="detail-device-info-lastseen" class="font-semibold text-gray-800"></span>
-              </div>
+        <!-- MQTT Connection Status -->
+        <div class="space-y-6 mb-8">
+          <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">🔌 MQTT 실시간 연결</h3>
+          <div class="bg-gray-50 p-6 rounded-lg space-y-4">
+            <div class="flex justify-between items-center py-2 border-b border-gray-200">
+              <span class="text-gray-600 font-medium">연결 상태:</span>
+              <span id="detail-mqtt-connection-status" class="connection-status disconnected">연결 끊김</span>
             </div>
-          </div>
-
-          <!-- MQTT Connection Status -->
-          <div class="space-y-6">
-            <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">MQTT 연결 상태</h3>
-            <div class="bg-gray-50 p-6 rounded-lg space-y-4">
-              <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                <span class="text-gray-600 font-medium">연결 상태:</span>
-                <span id="detail-mqtt-connection-status" class="connection-status disconnected">연결 끊김</span>
-              </div>
-              <div class="py-2 border-b border-gray-200">
-                <span class="text-gray-600 font-medium block mb-2">MQTT 토픽:</span>
-                <span id="detail-mqtt-topic" class="font-mono text-sm bg-white px-3 py-2 rounded border block break-all"></span>
-              </div>
-              <div class="py-2">
-                <span class="text-gray-600 font-medium block mb-2">마지막 메시지:</span>
-                <span id="detail-mqtt-last-message" class="text-sm bg-white px-3 py-2 rounded border block"></span>
-              </div>
+            <div class="py-2 border-b border-gray-200">
+              <span class="text-gray-600 font-medium block mb-2">MQTT 토픽:</span>
+              <span id="detail-mqtt-topic" class="font-mono text-sm bg-white px-3 py-2 rounded border block break-all"></span>
+            </div>
+            <div class="py-2">
+              <span class="text-gray-600 font-medium block mb-2">마지막 메시지:</span>
+              <span id="detail-mqtt-last-message" class="text-sm bg-white px-3 py-2 rounded border block min-h-[40px]">메시지 대기 중...</span>
             </div>
           </div>
         </div>
 
         <!-- Real-time Temperature Chart -->
         <div class="space-y-6">
-          <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">실시간 온도 데이터</h3>
+          <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">📊 실시간 온도 데이터</h3>
           <div class="bg-gray-50 p-6 rounded-lg">
-            <div class="chart-container h-80">
+            <div class="chart-container h-96">
               <canvas id="detail-temperature-chart"></canvas>
             </div>
           </div>
@@ -291,7 +256,7 @@
     <!-- Load external libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    
+
     <!-- Update script path -->
     <script type="module" src="/src/app.js"></script>
   </body>
