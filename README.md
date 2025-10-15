@@ -193,7 +193,12 @@ aiot-device-manager-fe-working/
 │   ├── app.js                      # Main application logic
 │   ├── AppManager.js               # Application manager
 │   ├── config/
-│   │   └── firebase.config.js      # Firebase configuration
+│   │   ├── firebase.config.js      # Firebase configuration
+│   │   └── app.config.js           # ⭐ App personalization config
+│   ├── components/                 # Reusable components
+│   │   ├── DeviceAddForm.js
+│   │   ├── MQTTManager.js
+│   │   └── TemperatureChart.js
 │   └── views/                      # View components
 │       ├── AuthView.js             # Authentication view
 │       ├── DeviceListView.js       # Device list view
@@ -205,6 +210,7 @@ aiot-device-manager-fe-working/
 ├── index.html                      # Entry point
 ├── vite.config.js                  # Vite configuration
 ├── amplify.yml                     # AWS Amplify config
+├── PERSONALIZATION_GUIDE.md        # ⭐ Personalization guide
 └── package.json                    # Dependencies
 ```
 
@@ -222,6 +228,44 @@ aiot-device-manager-fe-working/
 
 - 📘 **[Firebase Setup Guide](FIREBASE_SETUP_GUIDE.md)** - Firebase Console 설정 가이드
 - 📕 **[Deployment Guide](DEPLOYMENT.md)** - AWS Amplify 배포 가이드
+- 🎨 **[Personalization Guide](PERSONALIZATION_GUIDE.md)** - 개인화 설정 가이드 (교육생용)
+
+## 🎨 Personalization (교육생용)
+
+이 프로젝트는 교육용으로 설계되어 **쉽게 개인화**할 수 있습니다!
+
+### 빠른 개인화 가이드
+
+1. **애플리케이션 이름 변경**
+   - 파일: `src/config/app.config.js`
+   - 변경: `appName: "나의 IoT 관리자"`
+
+2. **MQTT 토픽 프리픽스 변경** (중요!)
+   - 파일: `src/config/app.config.js`
+   - 변경: `topicPrefix: "본인이름/kiot"`
+   - 다른 수강생과 중복되지 않도록 반드시 변경하세요
+
+3. **개발자 정보 입력**
+   - 파일: `src/config/app.config.js`
+   - `developer` 섹션 수정
+
+4. **테마 색상 변경** (선택)
+   - 파일: `src/config/app.config.js`
+   - `theme` 섹션에서 색상 변경 (예: `primary: "purple"`)
+
+📖 **상세 가이드**: [PERSONALIZATION_GUIDE.md](PERSONALIZATION_GUIDE.md) 참조
+
+### 개인화 가능한 항목들
+
+- ✅ 앱 이름 및 설명
+- ✅ 개발자 정보
+- ✅ 테마 색상 (Tailwind CSS 색상)
+- ✅ MQTT 브로커 및 토픽 설정
+- ✅ 디바이스 타입 커스터마이징
+- ✅ 언어 설정 (한국어/영어)
+- ✅ 차트 스타일
+- ✅ UI 텍스트 및 라벨
+- ✅ 기능 ON/OFF 토글
 
 ## 📱 Usage
 

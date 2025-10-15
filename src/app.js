@@ -21,6 +21,9 @@ import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 import { firebaseConfig } from './config/firebase.config.js';
 
+// App configuration imports
+import { appConfig } from './config/app.config.js';
+
 // App management imports
 import { AppManager } from './AppManager.js';
 
@@ -46,16 +49,52 @@ try {
   let appManager = null;
 
   /**
+   * Apply app configuration to UI elements
+   */
+  function applyAppConfig() {
+    // Update page title
+    document.title = appConfig.appName;
+    const appTitleEl = document.getElementById('app-title');
+    if (appTitleEl) {
+      appTitleEl.textContent = appConfig.appName;
+    }
+    
+    // Update auth header title
+    const authHeaderEl = document.getElementById('auth-header-title');
+    if (authHeaderEl) {
+      authHeaderEl.textContent = appConfig.appName;
+    }
+    
+    // Update main header title
+    const mainHeaderEl = document.getElementById('main-header-title');
+    if (mainHeaderEl) {
+      mainHeaderEl.textContent = appConfig.appName;
+    }
+    
+    // Update HTML lang attribute
+    const htmlEl = document.documentElement;
+    if (htmlEl) {
+      htmlEl.setAttribute('lang', appConfig.locale);
+    }
+    
+    console.log(`✅ App configuration applied: ${appConfig.appName}`);
+  }
+
+  /**
    * DOM Content Loaded Event Handler
    * 새로운 뷰 기반 아키텍처로 앱을 초기화합니다.
    */
   document.addEventListener('DOMContentLoaded', async () => {
     try {
+      // Apply app configuration
+      applyAppConfig();
+      
       // Create and initialize app manager
       appManager = new AppManager(firebaseServices);
       
-      // Export app manager for debugging
+      // Export app manager and config for debugging
       window.appManager = appManager;
+      window.appConfig = appConfig;
       
       await appManager.initialize();
     } catch (error) {
