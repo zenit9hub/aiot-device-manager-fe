@@ -40,8 +40,8 @@ export class DeviceDetailView extends BaseView {
     // MQTT 브로커 URL을 config에서 가져오기
     const brokerUrl = getMqttBrokerUrl();
     // topicPrefix에 이미 /가 포함되어 있을 수 있으므로 처리
-    const prefix = appConfig.mqtt.topicPrefix.endsWith('/') 
-      ? appConfig.mqtt.topicPrefix 
+    const prefix = appConfig.mqtt.topicPrefix.endsWith('/')
+      ? appConfig.mqtt.topicPrefix
       : `${appConfig.mqtt.topicPrefix}/`;
     const topic = `${prefix}${this.device.location}`;
 
