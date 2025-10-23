@@ -12,6 +12,7 @@ import {
   serverTimestamp
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
+import { backendConfig } from '../config/backend.config.js';
 
 /**
  * DeviceListView - 디바이스 목록 뷰
@@ -19,15 +20,22 @@ import { signOut } from "firebase/auth";
  * 디바이스 CRUD 작업과 목록 표시를 관리합니다.
  */
 export class DeviceListView extends BaseView {
-  constructor(db, auth) {
+  constructor(db, auth, backendIntegration) {
     super('deviceList', 'device-list-screen');
     this.db = db;
     this.auth = auth;
+    this.backendIntegration = backendIntegration ?? null;
     this.currentUser = null;
     this.devices = [];
     this.currentFilter = 'all';
     this.unsubscribeDevices = null;
     this.deviceAddForm = null;
+    this.backendStatusBadge = null;
+    this.backendEndpointDisplay = null;
+    this.configureBackendButton = null;
+    this.backendSubscription = null;
+    this.isConfiguringBackend = false;
+    this.boundConfigureBackend = null;
   }
 
   /**
@@ -68,6 +76,7 @@ export class DeviceListView extends BaseView {
     this.setupEventListeners();
     this.updateUserEmail();
     this.setupDeviceListeners();
+    this.initializeBackendControls();
 
     // DeviceAddForm 컴포넌트 초기화
     this.deviceAddForm = new DeviceAddForm((deviceData) => {
@@ -82,6 +91,14 @@ export class DeviceListView extends BaseView {
       this.unsubscribeDevices();
       this.unsubscribeDevices = null;
     }
+    if (this.backendSubscription) {
+      this.backendSubscription();
+      this.backendSubscription = null;
+    }
+    if (this.configureBackendButton && this.boundConfigureBackend) {
+      this.configureBackendButton.removeEventListener('click', this.boundConfigureBackend);
+    }
+    this.isConfiguringBackend = false;
     if (this.deviceAddForm) {
       this.deviceAddForm.cleanup();
       this.deviceAddForm = null;
@@ -159,6 +176,146 @@ export class DeviceListView extends BaseView {
       this.renderDevices();
       this.updateDeviceCount();
     });
+  }
+
+  initializeBackendControls() {
+    this.backendStatusBadge = document.getElementById('backend-status-badge');
+    this.backendEndpointDisplay = document.getElementById('backend-endpoint-display');
+    this.configureBackendButton = document.getElementById('configure-backend');
+
+    if (this.configureBackendButton) {
+      this.boundConfigureBackend = this.handleBackendConfigure.bind(this);
+      this.configureBackendButton.addEventListener('click', this.boundConfigureBackend);
+    }
+
+    if (this.backendIntegration) {
+      this.backendSubscription = this.backendIntegration.onChange((state) => this.updateBackendStatus(state));
+      this.updateBackendStatus(this.backendIntegration.getState());
+    } else {
+      this.updateBackendStatus({ enabled: false, endpoint: null });
+    }
+  }
+
+  updateBackendStatus(state) {
+    const isActive = Boolean(state?.enabled && state?.endpoint);
+
+    if (this.backendStatusBadge) {
+      this.backendStatusBadge.textContent = isActive ? '백엔드 연동 활성화' : '백엔드 연동 미설정';
+      this.backendStatusBadge.classList.toggle('bg-green-100', isActive);
+      this.backendStatusBadge.classList.toggle('text-green-700', isActive);
+      this.backendStatusBadge.classList.toggle('border', isActive);
+      this.backendStatusBadge.classList.toggle('border-green-200', isActive);
+      this.backendStatusBadge.classList.toggle('bg-gray-200', !isActive);
+      this.backendStatusBadge.classList.toggle('text-gray-700', !isActive);
+      this.backendStatusBadge.classList.toggle('border-gray-300', !isActive);
+    }
+
+    if (this.backendEndpointDisplay) {
+      if (isActive) {
+        this.backendEndpointDisplay.textContent = state.endpoint;
+        this.backendEndpointDisplay.classList.remove('hidden');
+      } else {
+        this.backendEndpointDisplay.textContent = '';
+        this.backendEndpointDisplay.classList.add('hidden');
+      }
+    }
+
+    if (this.configureBackendButton && !this.isConfiguringBackend) {
+      this.configureBackendButton.textContent = isActive ? 'BE 엔드포인트 변경' : 'BE 연동하기';
+      this.configureBackendButton.classList.toggle('bg-indigo-600', isActive);
+      this.configureBackendButton.classList.toggle('text-white', isActive);
+      this.configureBackendButton.classList.toggle('hover:bg-indigo-700', isActive);
+      this.configureBackendButton.classList.toggle('bg-indigo-100', !isActive);
+      this.configureBackendButton.classList.toggle('text-indigo-700', !isActive);
+      this.configureBackendButton.classList.toggle('hover:bg-indigo-200', !isActive);
+    }
+  }
+
+  setBackendButtonLoading(isLoading) {
+    if (!this.configureBackendButton) return;
+    this.isConfiguringBackend = isLoading;
+    this.configureBackendButton.disabled = isLoading;
+    if (isLoading) {
+      this.configureBackendButton.dataset.originalText = this.configureBackendButton.textContent;
+      this.configureBackendButton.textContent = '검증 중...';
+      this.configureBackendButton.classList.add('opacity-70', 'cursor-wait');
+    } else {
+      this.configureBackendButton.classList.remove('opacity-70', 'cursor-wait');
+      const original = this.configureBackendButton.dataset.originalText;
+      if (original) {
+        this.configureBackendButton.textContent = original;
+        delete this.configureBackendButton.dataset.originalText;
+      } else {
+        const state = this.backendIntegration ? this.backendIntegration.getState() : { enabled: false };
+        this.configureBackendButton.textContent = state.enabled ? 'BE 엔드포인트 변경' : 'BE 연동하기';
+      }
+    }
+  }
+
+  getEndpointSuggestion() {
+    const current = this.backendIntegration ? this.backendIntegration.getState() : null;
+    if (current?.endpoint) {
+      return current.endpoint;
+    }
+    return backendConfig.baseUrl ?? 'http://localhost:4000';
+  }
+
+  async handleBackendConfigure() {
+    if (!this.backendIntegration) {
+      alert('백엔드 연동 기능이 아직 준비되지 않았습니다.');
+      return;
+    }
+
+    if (!this.currentUser) {
+      alert('사용자 정보가 필요합니다. 다시 로그인해주세요.');
+      return;
+    }
+
+    const suggestion = this.getEndpointSuggestion();
+    const userInput = prompt('백엔드 API 엔드포인트를 입력하세요 (예: http://localhost:4000)', suggestion || '');
+
+    if (userInput === null) {
+      return; // cancelled
+    }
+
+    const trimmed = userInput.trim();
+
+    if (!trimmed) {
+      const shouldDisable = confirm('엔드포인트를 비워두면 백엔드 연동이 비활성화됩니다. 계속하시겠습니까?');
+      if (!shouldDisable) {
+        return;
+      }
+
+      try {
+        this.setBackendButtonLoading(true);
+        await this.backendIntegration.disable(this.currentUser.uid);
+        alert('백엔드 연동이 비활성화되었습니다.');
+      } catch (error) {
+        console.error('Failed to disable backend integration:', error);
+        alert(`연동 해제 중 오류가 발생했습니다.\n${error.message}`);
+      } finally {
+        this.setBackendButtonLoading(false);
+        if (this.backendIntegration) {
+          this.updateBackendStatus(this.backendIntegration.getState());
+        }
+      }
+
+      return;
+    }
+
+    try {
+      this.setBackendButtonLoading(true);
+      const verifiedEndpoint = await this.backendIntegration.verifyAndEnable(this.currentUser.uid, trimmed);
+      alert(`백엔드 연동이 활성화되었습니다.\n${verifiedEndpoint}`);
+    } catch (error) {
+      console.error('Backend endpoint verification failed:', error);
+      alert(`엔드포인트 검증에 실패했습니다.\n${error.message}`);
+    } finally {
+      this.setBackendButtonLoading(false);
+      if (this.backendIntegration) {
+        this.updateBackendStatus(this.backendIntegration.getState());
+      }
+    }
   }
 
   /**
