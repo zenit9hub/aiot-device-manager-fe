@@ -9,11 +9,14 @@ import { appConfig, getMqttBrokerUrl } from '../config/app.config.js';
  * MQTT 실시간 데이터와 차트에 집중
  */
 export class DeviceDetailView extends BaseView {
-  constructor() {
+  constructor(dependencies = {}) {
     super('deviceDetail', 'device-detail-screen');
     this.device = null;
     this.mqttManager = null;
     this.temperatureChart = null;
+    this.sensorApi = dependencies.sensorApi ?? null;
+    this.backendIntegration = dependencies.backendIntegration ?? null;
+    this.pendingApiRequest = null;
   }
 
   async initialize(data = {}) {
@@ -92,6 +95,8 @@ export class DeviceDetailView extends BaseView {
       } else {
         console.warn('[DeviceDetail] ⚠️ 온도 데이터가 없습니다:', data);
       }
+
+      this.forwardSensorReading(data);
     } catch (error) {
       // JSON이 아닌 경우 그냥 표시만
       console.log('[DeviceDetail] Non-JSON message:', message);
@@ -147,5 +152,56 @@ export class DeviceDetailView extends BaseView {
       this.temperatureChart.cleanup();
       this.temperatureChart = null;
     }
+  }
+
+  async forwardSensorReading(parsedPayload) {
+    if (!this.sensorApi || !this.device) {
+      return;
+    }
+
+    if (!this.backendIntegration || !this.backendIntegration.isEnabled()) {
+      return;
+    }
+
+    const recordedAt = this.resolveRecordedAt(parsedPayload);
+    const requestBody = {
+      deviceId: this.device.id,
+      deviceName: this.device.name,
+      recordedAt,
+      payload: parsedPayload
+    };
+
+    try {
+      this.pendingApiRequest = this.sensorApi.sendSensorReading(requestBody);
+      await this.pendingApiRequest;
+      console.log('[DeviceDetail] ✅ 센서 데이터가 백엔드로 전송되었습니다.');
+    } catch (error) {
+      console.error('[DeviceDetail] ❌ 백엔드 전송 실패:', error);
+    } finally {
+      this.pendingApiRequest = null;
+    }
+  }
+
+  resolveRecordedAt(payload) {
+    const candidates = [payload.recordedAt, payload.timestamp, payload.ts];
+    for (const candidate of candidates) {
+      if (!candidate) continue;
+
+      if (typeof candidate === 'number') {
+        const dateFromNumber = new Date(candidate);
+        if (!Number.isNaN(dateFromNumber.getTime())) {
+          return dateFromNumber.toISOString();
+        }
+      }
+
+      if (typeof candidate === 'string') {
+        const dateFromString = new Date(candidate);
+        if (!Number.isNaN(dateFromString.getTime())) {
+          return dateFromString.toISOString();
+        }
+      }
+    }
+
+    return new Date().toISOString();
   }
 }

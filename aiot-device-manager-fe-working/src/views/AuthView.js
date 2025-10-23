@@ -14,12 +14,14 @@ import {
  * 로그인, 회원가입, 로그아웃 기능을 관리합니다.
  */
 export class AuthView extends BaseView {
-  constructor(auth) {
+  constructor(auth, tokenManager, options = {}) {
     super('auth', 'auth-section');
     this.auth = auth;
     this.currentUser = null;
     this.authStateUnsubscribe = null;
     this.isLoggingIn = false; // 중복 로그인 방지 플래그
+    this.tokenManager = tokenManager;
+    this.onAuthChange = typeof options.onAuthChange === 'function' ? options.onAuthChange : null;
 
     // 이벤트 핸들러를 바운드 함수로 저장 (중복 등록 방지)
     this.boundHandlers = {
@@ -134,8 +136,8 @@ export class AuthView extends BaseView {
    * 인증 상태 리스너 설정
    */
   setupAuthStateListener() {
-    this.authStateUnsubscribe = onAuthStateChanged(this.auth, (user) => {
-      this.handleAuthStateChange(user);
+    this.authStateUnsubscribe = onAuthStateChanged(this.auth, async (user) => {
+      await this.handleAuthStateChange(user);
     });
   }
 
@@ -143,8 +145,18 @@ export class AuthView extends BaseView {
    * 인증 상태 변경 처리
    * @param {Object} user - Firebase user object
    */
-  handleAuthStateChange(user) {
+  async handleAuthStateChange(user) {
     this.currentUser = user;
+    if (this.tokenManager) {
+      this.tokenManager.clear();
+    }
+    if (this.onAuthChange) {
+      try {
+        await this.onAuthChange(user);
+      } catch (error) {
+        console.error('Auth change hook error:', error);
+      }
+    }
     this.updateUserInfo(user);
 
     // ViewManager가 준비되지 않았으면 무시 (초기화 중)

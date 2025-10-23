@@ -2,6 +2,10 @@ import { ViewManager } from './views/ViewManager.js';
 import { AuthView } from './views/AuthView.js';
 import { DeviceListView } from './views/DeviceListView.js';
 import { DeviceDetailView } from './views/DeviceDetailView.js';
+import { FirebaseTokenManager } from './services/FirebaseTokenManager.js';
+import { SensorApiClient } from './services/sensorApi.js';
+import { backendConfig } from './config/backend.config.js';
+import { BackendIntegrationService } from './services/BackendIntegrationService.js';
 
 /**
  * AppManager - 애플리케이션 전체 관리
@@ -18,6 +22,17 @@ export class AppManager {
     this.authView = null;
     this.deviceListView = null;
     this.deviceDetailView = null;
+    this.tokenManager = new FirebaseTokenManager(this.auth, {
+      cacheDurationMinutes: backendConfig.tokenCacheMinutes
+    });
+    this.sensorApiClient = new SensorApiClient({
+      tokenManager: this.tokenManager,
+      baseUrl: backendConfig.baseUrl
+    });
+    this.backendIntegrationService = new BackendIntegrationService({
+      db: this.db,
+      sensorApiClient: this.sensorApiClient
+    });
   }
 
   /**
@@ -26,9 +41,16 @@ export class AppManager {
   async initialize() {
     try {
       // 뷰 인스턴스 생성
-      this.authView = new AuthView(this.auth);
-      this.deviceListView = new DeviceListView(this.db, this.auth);
-      this.deviceDetailView = new DeviceDetailView();
+      this.authView = new AuthView(this.auth, this.tokenManager, {
+        onAuthChange: async (user) => {
+          await this.backendIntegrationService.handleAuthChange(user);
+        }
+      });
+      this.deviceListView = new DeviceListView(this.db, this.auth, this.backendIntegrationService);
+      this.deviceDetailView = new DeviceDetailView({
+        sensorApi: this.sensorApiClient,
+        backendIntegration: this.backendIntegrationService
+      });
 
       // 뷰 등록 (이 시점에서 ViewManager가 각 뷰에 설정됨)
       this.viewManager.registerView('auth', this.authView);
